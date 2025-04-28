@@ -1,9 +1,4 @@
-module ChessData 
-    ( Piece
-    , Color
-    , Coordinate
-    , Board
-    ) where
+module Types where
 
 data Piece = Empty | Pawn Color Coordinate | Knight Color Coordinate
                    | Bishop Color Coordinate | Rook Color Coordinate
@@ -14,4 +9,4 @@ data Color = White | Black
 
 data Coordinate = Coord Int Int
 
-data Board = FEN String | PieceArr [[Piece]]
+data Board = PieceArr [[Piece]]
