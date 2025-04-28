@@ -1,3 +1,5 @@
+module ChessLogic.ChessAI where
+  
 -- Chess piece constructor
 data Piece = 
        Pawn   { pVal :: Int }

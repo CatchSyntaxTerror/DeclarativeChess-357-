@@ -1,6 +1,7 @@
-module ChessFunctions where
+module ChessLogic.ChessFunctions where
 
-import Types
+import ChessLogic.Types
+
 boardFromFEN :: String -> Board
 boardFromFEN = undefined
 

@@ -1,4 +1,4 @@
-module Types where
+module ChessLogic.Types where
 
 data Piece = Empty | Pawn Color Coordinate | Knight Color Coordinate
                    | Bishop Color Coordinate | Rook Color Coordinate
