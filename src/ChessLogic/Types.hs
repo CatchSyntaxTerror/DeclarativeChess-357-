@@ -1,12 +1,10 @@
 module ChessLogic.Types where
 
-data Piece = Empty | Pawn Color Coordinate | Knight Color Coordinate
-                   | Bishop Color Coordinate | Rook Color Coordinate
-                   | King Color Coordinate
+data Piece = Empty | Pawn Color (Int,Int) | Knight Color (Int,Int)
+                   | Bishop Color (Int,Int) | Rook Color (Int,Int)
+                   | King Color (Int,Int)
 
 
 data Color = White | Black
-
-data Coordinate = Coord Int Int
 
 data Board = PieceArr [[Piece]]

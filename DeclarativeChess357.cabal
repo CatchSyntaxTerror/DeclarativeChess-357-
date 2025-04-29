@@ -61,7 +61,12 @@ library
     -- Modules exported by the library.
 
     -- To use files in APP or TEST we need to add them to exposed modules
-    exposed-modules:  MyLib, ChessLogic.ChessFunctions, ChessLogic.Types, ChessLogic.ChessAI
+    exposed-modules:  
+                        MyLib, 
+                        ChessLogic.ChessFunctions, 
+                        ChessLogic.Types, 
+                        ChessLogic.ChessAI,
+                        ChessLogic.ChessConstants
 
     -- Modules included in this library but not exported.
     -- other-modules:
