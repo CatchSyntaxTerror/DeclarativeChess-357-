@@ -1,25 +1,45 @@
 module Main where
 
 import Brillo
-import ChessLogic
+import Brillo.Data.Color as BColor
+
+import ChessLogic.Types as Chess
+
+squareSize :: Float
+squareSize = 100.0
+
+cream :: BColor.Color
+cream = BColor.makeColor 1.0 0.9 0.7 1.0
+
+greenPastel :: BColor.Color
+greenPastel = BColor.makeColor 0.4 0.6 0.5 1.0
+
+tileColor :: Int -> Int -> BColor.Color
+tileColor x y = if even (x + y) then cream else greenPastel
+
+
+tile :: Int -> Int -> Picture
+tile x y = color (tileColor x y) (rectangleSolid squareSize squareSize)
+
+pieceToPicture :: Piece -> Picture
+pieceToPicture p = scale 0.15 0.15 $ translate (-200) (-200) $
+    text (showPiece p)
+
+boardToPicture :: Float -> Board -> Picture
+boardToPicture ws (PieceArr grid) = pictures
+    [ translate' ws cx cy (pictures [tile x y, pieceToPicture p])
+    | (y, row) <- zip [0..] grid
+    , (x, p)   <- zip [0..] row
+    , let cx = fromIntegral x * squareSize + squareSize / 2
+          cy = fromIntegral y * squareSize + squareSize / 2
+    ]
+
+translate' :: Float -> Float -> Float -> Picture -> Picture
+translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
+
 
 main :: IO ()
 main = do
-  putStrLn "Game Loading..."
-
-  MyLib.someFunc
-  display (InWindow "Declarative Chess" (600, 600) (100, 100))
-
-
-
-squareSize :: float
-squareSize = 50
-
-chessBoard :: Picture
-chessBoard = Pictures
-  [translate (x * squareSize - 175) (y * squareSize - 175) 
-             (Color (tileColor x y) (rectangleSolid squareSize squareSize)) | x <- [0..7], y <- [0..7] ]
-  where
-    tileColor x y = if even (x + y) then cream else greenPastel
-    cream = makeColor 1.0 0.98 0.88 1.0
-    greenPastel = makeColor 0.4 0.6 0.5 1.0
+  let board = startingPosition
+  let ws = 8 * squareSize
+  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (Circle 10000)

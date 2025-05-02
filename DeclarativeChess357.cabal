@@ -75,7 +75,7 @@ library
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1, brillo
+    build-depends:    base, brillo
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -98,7 +98,7 @@ executable DeclarativeChess357
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.17.2.1,
+        base,
         DeclarativeChess357,
         brillo
 
@@ -136,5 +136,5 @@ test-suite DeclarativeChess357-test
 
     -- Test dependencies.
     build-depends:
-        base ^>=4.17.2.1,
+        base,
         DeclarativeChess357
