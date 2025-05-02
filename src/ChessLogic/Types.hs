@@ -32,6 +32,8 @@ ruyLopez = boardFromFEN "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 catalan = boardFromFEN "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PPBP/RNBQK2R"
 sveshnikov = boardFromFEN "r1bqkb1r/5p1p/p1np4/1p1Npp2/4P3/N7/PPP2PPP/R2QKB1R"
 
+-- Show Functions
+
 showBoardWhite :: Board -> String
 showBoardWhite (PieceArr pss) = foldr parseRow [] pss
     where
@@ -42,7 +44,7 @@ showBoardBlack :: Board -> String
 showBoardBlack (PieceArr pss) = foldr parseRow [] pss
     where
         parseRow row recur = "[" ++ foldr parsePiece [] row ++  "]\n" ++ recur
-        parsePiece piece recur' = show piece ++ recur'
+        parsePiece piece recur' = recur' ++ show piece
 
 showPiece :: Piece -> String
 showPiece Empty = " "
@@ -75,6 +77,43 @@ charToPiece 'k' = King Black
 charToPiece ' ' = Empty
 charToPiece _ = Empty
 
+-- Piece Logic
+
+-- The main method for getting legal moves. Takes an FEN and returns a list of FENs
+getLegalMoves :: String -> [String]
+getLegalMoves = undefined
+
+-- A helper method for getting candidate legal moves. Returns all moves that involve real piece
+-- moves, but may leave the king in check and therefore may not be legal.
+-- Legal moves require that a candidate move position does not lead to any candidate moves that 
+-- involve the capture of the king
+getCandidateMoves :: String -> [String]
+getCandidateMoves = undefined
+
+-- pattern match for different pieces
+-- Board -> Piece Coordinate -> EnPCoordinate -> QCastling -> KCastling -> List of possible boards
+getCandidateMovesForPiece :: Board -> (Int,Int) -> (Int,Int) -> Bool -> Bool -> [Board]
+getCandidateMovesForPiece pss (row,col) = undefined
+
+-- Board -> Piece Coordinate -> En Passant Coordinate
+getCandidatePawn :: Board -> (Int,Int) -> (Int,Int) -> [Board]
+getCandidatePawn = undefined
+
+getCandidateKnight :: Board -> (Int,Int) -> [Board]
+getCandidateKnight = undefined
+
+getCandidateBishop :: Board -> (Int,Int) -> [Board]
+getCandidateBishop = undefined
+
+getCandidateRook :: Board -> (Int,Int) -> [Board]
+getCandidateRook = undefined
+
+getCandidateQueen :: Board -> (Int,Int) -> [Board]
+getCandidateQueen = undefined
+
+-- Board -> King Coordinate -> QueensideCastling -> KingsideCastling -> CandidateMoves
+getCandidateKing :: Board -> (Int,Int) -> Bool -> Bool -> [Board]
+getCandidateKing = undefined
 
 -- This is defined in ChessFunctions but im using it here to test for GHCI
 
