@@ -1,5 +1,8 @@
 module ChessLogic.Types where
+
+--These imports should be moved to chess functions once we get all the imports working
 import Data.Char (digitToInt)
+import Data.Char (intToDigit)
 
 -- DATA
 
@@ -74,6 +77,18 @@ charToPiece _ = Empty
 
 
 -- This is defined in ChessFunctions but im using it here to test for GHCI
+
+boardToFEN :: Board -> String
+boardToFEN (PieceArr pss) = init (foldr parseBoard [] (reverse pss))
+    where
+        parseBoard row recur = parseRow 0 row ++ "/" ++ recur
+
+        -- Handling each row of the board
+        parseRow 0 [] = []
+        parseRow numEmpty [] = [intToDigit numEmpty]
+        parseRow numEmpty (Empty:ps) = parseRow (numEmpty + 1) ps
+        parseRow 0 (p:ps) = showPiece p ++ parseRow 0 ps
+        parseRow numEmpty row =  intToDigit numEmpty : parseRow 0 row
 
 boardFromFEN :: String -> Board
 boardFromFEN fen = PieceArr (reverse (foldr go [] (rowsFromFEN fen)))
