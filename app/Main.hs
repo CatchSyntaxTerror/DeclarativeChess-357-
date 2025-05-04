@@ -17,6 +17,7 @@ greenPastel = BColor.makeColor 0.4 0.6 0.5 1.0
 tileColor :: Int -> Int -> BColor.Color
 tileColor x y = if even (x + y) then cream else greenPastel
 
+Nf3 = head getCandidateKnight startingPosition (1,7)
 
 tile :: Int -> Int -> Picture
 tile x y = color (tileColor x y) (rectangleSolid squareSize squareSize)
