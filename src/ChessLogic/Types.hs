@@ -26,9 +26,10 @@ instance Show Board where
 
 -- Starting position constructed as piece array for test
 startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
-testPosition = boardFromFEN "8/8/3k4/8/8/4K3/8/8"
 
 -- Some Test Positions
+testKing = boardFromFEN "8/8/3k4/8/8/4K3/8/8"
+testRook = boardFromFEN "5k2/3p4/8/4r3/1P1R2P1/8/8/2K5"
 ruyLopez = boardFromFEN "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 catalan = boardFromFEN "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PPBP/RNBQK2R"
 sveshnikov = boardFromFEN "r1bqkb1r/5p1p/p1np4/1p1Npp2/4P3/N7/PPP2PPP/R2QKB1R"
@@ -149,7 +150,20 @@ getCandidateBishop :: Board -> (Int,Int) -> [Board]
 getCandidateBishop = undefined
 
 getCandidateRook :: Board -> (Int,Int) -> [Board]
-getCandidateRook = undefined
+getCandidateRook (PieceArr pss) (x,y) = boardWithCandidates
+    where
+        boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutRook (Rook (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
+        boardWithoutRook = boardWithPiece (PieceArr pss) Empty (x,y)
+        rColor = colorSquare (PieceArr pss) (x,y)
+        -- the direction coordinates (1,0) (-1,0) (0,-1) (0,1) represent the rook directional movement.
+        -- to make bishop or queen you can simply add the directions (1,1) (1,-1) (-1,1) (-1,-1)
+        candidateSquares = candidatesInDirection (x,y) (1,0) rColor ++ candidatesInDirection (x,y) (-1,0) rColor
+                        ++ candidatesInDirection (x,y) (0,-1) rColor ++ candidatesInDirection (x,y) (0,1) rColor
+        candidatesInDirection (x,y) (dx,dy) rColor
+            | not (validSquare (x + dx, y + dy)) = []
+            | colorSquare (PieceArr pss) (x + dx, y + dy) == None = (x + dx, y + dy) : candidatesInDirection (x + dx, y + dy) (dx,dy) rColor
+            | colorSquare (PieceArr pss) (x + dx, y + dy) /= rColor = [(x + dx, y + dy)]
+            | colorSquare (PieceArr pss) (x + dx, y + dy) == rColor = []
 
 getCandidateQueen :: Board -> (Int,Int) -> [Board]
 --Youssef will implement this function
