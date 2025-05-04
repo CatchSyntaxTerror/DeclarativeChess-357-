@@ -8,18 +8,17 @@ import Data.Char (intToDigit)
 
 data Piece = Empty | Pawn Color   | Knight Color
                    | Bishop Color | Rook Color
-                   | King Color   | Queen Color
+                   | King Color   | Queen Color deriving Eq
 
-data Color = White | Black
+data Color = White | Black | None deriving (Eq,Show)
 
-data Board = PieceArr [[Piece]]
+data Board = PieceArr [[Piece]] 
 
 
 -- SHOW
 
 instance Show Piece where
     show = showPiece
-
 
 instance Show Board where
     show = showBoardWhite
@@ -79,6 +78,17 @@ charToPiece _ = Empty
 
 -- Piece Logic
 
+startCoord = 1
+endCoord = 8
+
+-- Takes a board, a piece, a coordinate, and returns that board with the piece placed at that coordinate
+boardWithPiece :: Board -> Piece -> (Int,Int) -> Board
+boardWithPiece (PieceArr pss) piece (x,y) = PieceArr (foldr replaceRow [] (zip pss [startCoord..]))
+    where
+        replaceRow (ps,row) recur = if x == row then foldr replaceCoordinate [] (zip ps [startCoord..]) : recur else ps : recur
+        replaceCoordinate (p,col) recur = if y == col then piece : recur else p : recur
+
+
 -- The main method for getting legal moves. Takes an FEN and returns a list of FENs
 getLegalMoves :: String -> [String]
 getLegalMoves = undefined
@@ -100,7 +110,37 @@ getCandidatePawn :: Board -> (Int,Int) -> (Int,Int) -> [Board]
 getCandidatePawn = undefined
 
 getCandidateKnight :: Board -> (Int,Int) -> [Board]
-getCandidateKnight = undefined
+getCandidateKnight (PieceArr pss) (x,y) = boardWithCandidates
+     where
+         boardWithoutKnight = boardWithPiece (PieceArr pss) Empty (x,y) 
+         boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutKnight (Knight (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
+         candidateSquares = filter (\p -> validSquare p && colorSquare (PieceArr pss) p /= colorSquare (PieceArr pss) (x,y)) squares
+         squares = [(x + 2, y + 1),
+                     (x + 2, y - 1),
+                     (x + 1, y + 2),
+                     (x + 1, y - 2),
+                     (x - 1, y + 2),
+                     (x - 1, y - 2),
+                     (x - 2, y + 1),
+                     (x - 2, y - 1)]
+
+
+validSquare :: (Int,Int) -> Bool
+validSquare (x,y) = x >= startCoord && x <= endCoord && y >= startCoord && y <= endCoord
+
+emptySquare :: Board -> (Int,Int) -> Bool
+emptySquare (PieceArr pss) (x,y) = (pss !! (x - startCoord)) !! (y - startCoord) == Empty
+
+colorSquare :: Board -> (Int,Int) -> Color
+colorSquare (PieceArr pss) (x,y) = getColor (pss !! (x - startCoord) !! (y - startCoord))
+    where
+        getColor Empty = None
+        getColor (Pawn c) = c
+        getColor (Knight c) = c
+        getColor (Bishop c) = c
+        getColor (Queen c) = c
+        getColor (King c) = c
+        getColor (Rook c) = c
 
 getCandidateBishop :: Board -> (Int,Int) -> [Board]
 getCandidateBishop = undefined
@@ -157,3 +197,6 @@ parseFENrow strs = foldr go [] strs
        go 'Q' recur = Queen  White : recur
        go 'K' recur = King   White : recur
        go n recur = replicate (digitToInt n) Empty ++ recur
+
+pieceArrFromBoard :: Board -> [[Piece]]
+pieceArrFromBoard (PieceArr pss) = pss
