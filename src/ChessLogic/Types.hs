@@ -1,4 +1,5 @@
 module ChessLogic.Types where
+    -- |Todo: pawn promotion, en passant, castling, check, checkmate, stalemate, draw, Bishops, Querens and rooks
 
 --These imports should be moved to chess functions once we get all the imports working
 import Data.Char (digitToInt)
@@ -25,6 +26,7 @@ instance Show Board where
 
 -- Starting position constructed as piece array for test
 startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+testPosition = boardFromFEN "8/8/3k4/8/8/4K3/8/8"
 
 -- Some Test Positions
 ruyLopez = boardFromFEN "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
@@ -42,7 +44,7 @@ showBoardWhite (PieceArr pss) = foldr parseRow [] pss
 showBoardBlack :: Board -> String
 showBoardBlack (PieceArr pss) = foldr parseRow [] pss
     where
-        parseRow row recur = "[" ++ foldr parsePiece [] row ++  "]\n" ++ recur
+        parseRow row recur = "[" ++ foldr parsePiece [] row ++  "]/n" ++ recur
         parsePiece piece recur' = recur' ++ show piece
 
 showPiece :: Piece -> String
@@ -143,17 +145,31 @@ colorSquare (PieceArr pss) (x,y) = getColor (pss !! (x - startCoord) !! (y - sta
         getColor (Rook c) = c
 
 getCandidateBishop :: Board -> (Int,Int) -> [Board]
+--Youssef will implement this function
 getCandidateBishop = undefined
 
 getCandidateRook :: Board -> (Int,Int) -> [Board]
 getCandidateRook = undefined
 
 getCandidateQueen :: Board -> (Int,Int) -> [Board]
+--Youssef will implement this function
 getCandidateQueen = undefined
 
 -- Board -> King Coordinate -> QueensideCastling -> KingsideCastling -> CandidateMoves
 getCandidateKing :: Board -> (Int,Int) -> Bool -> Bool -> [Board]
-getCandidateKing = undefined
+getCandidateKing (PieceArr pss) (x,y) qCas kCas = boardWithCandidates
+     where
+         boardWithoutKing = boardWithPiece (PieceArr pss) Empty (x,y)
+         boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutKing (King (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
+         candidateSquares = filter (\p -> validSquare p && colorSquare (PieceArr pss) p /= colorSquare (PieceArr pss) (x,y)) squares
+         squares = [(x + 1, y + 1),
+                     (x + 1, y - 1),
+                     (x + 1, y),
+                     (x, y - 1),
+                     (x, y + 1),
+                     (x - 1, y - 1),
+                     (x - 1, y + 1),
+                     (x - 1, y)]
 
 -- This is defined in ChessFunctions but im using it here to test for GHCI
 
