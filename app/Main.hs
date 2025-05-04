@@ -34,6 +34,7 @@ boardToPicture ws (PieceArr grid) = pictures
           cy = fromIntegral y * squareSize + squareSize / 2
     ]
 
+--translate the coordinates to the center of the window
 translate' :: Float -> Float -> Float -> Picture -> Picture
 translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
 
@@ -42,4 +43,6 @@ main :: IO ()
 main = do
   let board = startingPosition
   let ws = 8 * squareSize
-  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (Circle 10000)
+  putStrLn "Loading..."
+  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
+  putStrLn "Finished"
