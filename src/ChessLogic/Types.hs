@@ -31,9 +31,13 @@ startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 testKing = boardFromFEN "8/8/3k4/8/8/4K3/8/8"
 testRook = boardFromFEN "5k2/3p4/8/4r3/1P1R2P1/8/8/2K5"
 testPawn = boardFromFEN "1n6/P1ppp3/1pk2p2/6pP/4Kp1P/1p1P2P1/1PPPPP2/8"
+testCastleIllegal = boardFromFEN "1n3r2/3p1ppp/4kn2/2p5/8/4bNP1/PP2Q1PP/R1B1K2R"
 ruyLopez = boardFromFEN "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 catalan = boardFromFEN "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PPBP/RNBQK2R"
 sveshnikov = boardFromFEN "r1bqkb1r/5p1p/p1np4/1p1Npp2/4P3/N7/PPP2PPP/R2QKB1R"
+benko = boardFromFEN "1n3rk1/3pqppp/b4n2/2p5/8/4PN2/PP3PPP/R1BQK2R"
+italian = boardFromFEN "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R"
+pirc = boardFromFEN "rnbqk2r/ppp1ppbp/3p1np1/8/3PP3/2N1B3/PPPQ1PPP/R3KBNR"
 amin = boardFromFEN "3k4/5n2/3p4/3Qb3/1p6/8/8/4K3"
 
 -- Show Functions
@@ -123,7 +127,7 @@ getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardW
         -- Determines if pawn is on starting rank based on color
 
         onStartingRank = (colorSquare (PieceArr pss) (x,y) == White && x == (startCoord + 1)) || (colorSquare (PieceArr pss) (x,y) == Black && x == (endCoord - 1))
-        onSeventhRank = (colorSquare (PieceArr pss) (x,y) == White && x == (endCoord - 1)) || (x == (startCoord + 1))
+        onSeventhRank = (colorSquare (PieceArr pss) (x,y) == White && x == (endCoord - 1)) || (colorSquare (PieceArr pss) (x,y) == Black && x == (startCoord + 1))
 
         pawnColor = colorSquare (PieceArr pss) (x,y)
         enemyColor = if colorSquare (PieceArr pss) (x,y) == White then Black else White
@@ -233,14 +237,14 @@ getCandidateQueen board pos@(x, y) = map (boardWithPiece clearedBoard queenColor
         directions = [(1,1), (1,-1), (-1,1), (-1,-1), (1,0), (-1,0), (0,1), (0,-1)]
         validTargets = concatMap (getBishopMovesInDirection board color pos) directions
 
--- Board -> King Coordinate -> QueensideCastling -> KingsideCastling -> CandidateMoves
-getCandidateKing :: Board -> (Int,Int) -> Bool -> Bool -> [Board]
-getCandidateKing (PieceArr pss) (x,y) qCas kCas = boardWithCandidates
-     where
-         boardWithoutKing = boardWithPiece (PieceArr pss) Empty (x,y)
-         boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutKing (King (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
-         candidateSquares = filter (\p -> validSquare p && colorSquare (PieceArr pss) p /= colorSquare (PieceArr pss) (x,y)) squares
-         squares = [(x + 1, y + 1),
+-- When generating enemy "threats" we shouldn't consider the king's castling
+getCandidateKingWithoutCastles :: Board -> (Int,Int) -> [Board]
+getCandidateKingWithoutCastles (PieceArr pss) (x,y) = boardWithCandidates
+    where
+        boardWithoutKing = boardWithPiece (PieceArr pss) Empty (x,y)
+        boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutKing (King (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
+        candidateSquares = filter (\p -> validSquare p && colorSquare (PieceArr pss) p /= colorSquare (PieceArr pss) (x,y)) squares
+        squares = [(x + 1, y + 1),
                      (x + 1, y - 1),
                      (x + 1, y),
                      (x, y - 1),
@@ -248,6 +252,61 @@ getCandidateKing (PieceArr pss) (x,y) qCas kCas = boardWithCandidates
                      (x - 1, y - 1),
                      (x - 1, y + 1),
                      (x - 1, y)]
+        colorKing = colorSquare (PieceArr pss) (x,y)
+
+-- Board -> King Coordinate -> QueensideCastling -> KingsideCastling -> EnemyCandidates -> CandidateMoves
+getCandidateKing :: Board -> (Int,Int) -> Bool -> Bool -> [Board] -> [Board]
+getCandidateKing (PieceArr pss) (x,y) kCas qCas enemyCandidates = boardWithCandidates ++ candidateKingside ++ candidateQueenside
+     where
+        boardWithoutKing = boardWithPiece (PieceArr pss) Empty (x,y)
+        boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutKing (King (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
+        candidateSquares = filter (\p -> validSquare p && colorSquare (PieceArr pss) p /= colorSquare (PieceArr pss) (x,y)) squares
+        squares = [(x + 1, y + 1),
+                     (x + 1, y - 1),
+                     (x + 1, y),
+                     (x, y - 1),
+                     (x, y + 1),
+                     (x - 1, y - 1),
+                     (x - 1, y + 1),
+                     (x - 1, y)]
+        colorKing = colorSquare (PieceArr pss) (x,y)
+
+        checkSquaresForEmpty2 (x1,y1)(x2,y2) = colorSquare (PieceArr pss) (x1,y1) == None && 
+                                               colorSquare (PieceArr pss) (x2,y2) == None
+
+        checkSquaresForEmpty3 (x1,y1) (x2,y2) (x3,y3) = colorSquare (PieceArr pss) (x1,y1) == None && 
+                                                        colorSquare (PieceArr pss) (x2,y2) == None &&
+                                                        colorSquare (PieceArr pss) (x3,y3) == None
+
+        checkSquaresForThreat (x1,y1) (x2,y2) (x3,y3) color = (foldr (\cand recur -> colorSquare cand (x1,x2) == color || 
+                                                                 colorSquare cand (x2,y2) == color || 
+                                                                 colorSquare cand (x3,y3) == color || recur) False enemyCandidates)
+        castleKingside
+            | colorKing == White = kCas && (checkSquaresForEmpty2 (1,6)(1,7)) && not (checkSquaresForThreat (1,5)(1,6)(1,7) Black)
+            | colorKing == Black = kCas && (checkSquaresForEmpty2 (8,6)(8,7)) && not (checkSquaresForThreat (8,5)(8,6)(8,7) White)
+        
+        castleQueenside
+            | colorKing == White = qCas && (checkSquaresForEmpty3 (1,4)(1,3)(1,2)) && not (checkSquaresForThreat (1,3)(1,4)(1,5) Black)
+            | colorKing == Black = qCas && (checkSquaresForEmpty3 (8,4)(8,3)(8,2)) && not (checkSquaresForThreat (8,3)(8,4)(8,5) White)
+
+        boardWithoutKingsideCastle 
+            | colorKing == White = boardWithPiece boardWithoutKing Empty (1,8)
+            | colorKing == Black = boardWithPiece boardWithoutKing Empty (8,8)
+
+        boardWithoutQueensideCastle
+            | colorKing == White = boardWithPiece boardWithoutKing Empty (1,1)
+            | colorKing == Black = boardWithPiece boardWithoutKing Empty (8,1)
+
+        boardWithKingsideCastle
+            | colorKing == White = boardWithPiece (boardWithPiece boardWithoutKingsideCastle (King White) (1,7)) (Rook White) (1,6)
+            | colorKing == Black = boardWithPiece (boardWithPiece boardWithoutKingsideCastle (King Black) (8,7)) (Rook Black) (8,6)
+
+        boardWithQueensideCastle
+            | colorKing == White = boardWithPiece (boardWithPiece boardWithoutQueensideCastle (King White) (1,3)) (Rook White) (1,4)
+            | colorKing == Black = boardWithPiece (boardWithPiece boardWithoutQueensideCastle (King Black) (8,3)) (Rook Black) (8,4)
+        
+        candidateKingside = if castleKingside then [boardWithKingsideCastle] else []
+        candidateQueenside = if castleQueenside then [boardWithQueensideCastle] else []
 
 -- This is defined in ChessFunctions but im using it here to test for GHCI
 
