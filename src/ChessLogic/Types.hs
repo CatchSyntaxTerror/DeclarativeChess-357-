@@ -34,6 +34,7 @@ testPawn = boardFromFEN "8/P1ppp3/1pk2p2/6pP/4Kp1P/1p1P2P1/1PPPPP2/8"
 ruyLopez = boardFromFEN "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 catalan = boardFromFEN "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PPBP/RNBQK2R"
 sveshnikov = boardFromFEN "r1bqkb1r/5p1p/p1np4/1p1Npp2/4P3/N7/PPP2PPP/R2QKB1R"
+amin = boardFromFEN "3k4/5n2/3p4/3Qb3/1p6/8/8/4K3"
 
 -- Show Functions
 
@@ -176,8 +177,24 @@ colorSquare (PieceArr pss) (x,y) = getColor (pss !! (x - startCoord) !! (y - sta
         getColor (Rook c) = c
 
 getCandidateBishop :: Board -> (Int,Int) -> [Board]
---Youssef will implement this function
-getCandidateBishop = undefined
+getCandidateBishop board pos@(x, y) = map (boardWithPiece clearedBoard bishopColor) validTargets
+    where
+        bishopColor = Bishop (colorSquare board pos)
+        color = colorSquare board pos
+        clearedBoard = boardWithPiece board Empty pos
+        directions = [(1,1), (1,-1), (-1,1), (-1,-1)]
+        validTargets = concatMap (getBishopMovesInDirection board color pos) directions
+
+--Helper for getCandidateBishop
+getBishopMovesInDirection :: Board -> Color -> (Int,Int) -> (Int,Int) -> [(Int,Int)]
+getBishopMovesInDirection board color (x, y) (dx, dy) = go (x + dx, y + dy)
+    where
+        go pos@(nx, ny)
+            | not (validSquare pos) = []
+            | emptySquare board pos = pos : go (nx + dx, ny + dy)
+            | colorSquare board pos == color = []
+            | otherwise = [pos]
+
 
 getCandidateRook :: Board -> (Int,Int) -> [Board]
 getCandidateRook (PieceArr pss) (x,y) = boardWithCandidates
@@ -196,8 +213,13 @@ getCandidateRook (PieceArr pss) (x,y) = boardWithCandidates
             | colorSquare (PieceArr pss) (x + dx, y + dy) == rColor = []
 
 getCandidateQueen :: Board -> (Int,Int) -> [Board]
---Youssef will implement this function
-getCandidateQueen = undefined
+getCandidateQueen board pos@(x, y) = map (boardWithPiece clearedBoard queenColor) validTargets
+    where
+        queenColor = Queen (colorSquare board pos)
+        color = colorSquare board pos
+        clearedBoard = boardWithPiece board Empty pos
+        directions = [(1,1), (1,-1), (-1,1), (-1,-1), (1,0), (-1,0), (0,1), (0,-1)]
+        validTargets = concatMap (getBishopMovesInDirection board color pos) directions
 
 -- Board -> King Coordinate -> QueensideCastling -> KingsideCastling -> CandidateMoves
 getCandidateKing :: Board -> (Int,Int) -> Bool -> Bool -> [Board]
