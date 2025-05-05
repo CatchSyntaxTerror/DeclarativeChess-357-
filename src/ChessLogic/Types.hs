@@ -30,6 +30,7 @@ startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 -- Some Test Positions
 testKing = boardFromFEN "8/8/3k4/8/8/4K3/8/8"
 testRook = boardFromFEN "5k2/3p4/8/4r3/1P1R2P1/8/8/2K5"
+testPawn = boardFromFEN "8/P1ppp3/1pk2p2/6pP/4Kp1P/1p1P2P1/1PPPPP2/8"
 ruyLopez = boardFromFEN "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 catalan = boardFromFEN "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PPBP/RNBQK2R"
 sveshnikov = boardFromFEN "r1bqkb1r/5p1p/p1np4/1p1Npp2/4P3/N7/PPP2PPP/R2QKB1R"
@@ -110,7 +111,36 @@ getCandidateMovesForPiece pss (row,col) = undefined
 
 -- Board -> Piece Coordinate -> En Passant Coordinate
 getCandidatePawn :: Board -> (Int,Int) -> (Int,Int) -> [Board]
-getCandidatePawn = undefined
+getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardWithCandidates
+    where
+        boardWithoutEnPassant = boardWithPiece boardWithoutPawn Empty (enPx + ((-1) * colorDirection),enPy)
+        boardWithoutPawn = boardWithPiece (PieceArr pss) Empty (x,y)
+        -- Vector direction based on color
+        colorDirection = if colorSquare (PieceArr pss) (x,y) == White then 1 else -1
+        -- Determines if pawn is on starting rank based on color
+
+        onStartingRank = (colorSquare (PieceArr pss) (x,y) == White && x == (startCoord + 1)) || (x == (endCoord - 1))
+        onSeventhRank = (colorSquare (PieceArr pss) (x,y) == White && x == (endCoord - 1)) || (x == (startCoord + 1))
+
+        pawnColor = colorSquare (PieceArr pss) (x,y)
+        enemyColor = if colorSquare (PieceArr pss) (x,y) == White then Black else White
+
+        checkForward n = if (validSquare (x + (n * colorDirection),y) && colorSquare (PieceArr pss) (x + (n * colorDirection), y) == None) then [(x + (n * colorDirection),y)] else []
+        
+        diagCandidateColor n = colorSquare (PieceArr pss) (x + colorDirection, y + n)
+        checkDiags n = if ((validSquare (x + colorDirection,y + n)) && (diagCandidateColor n == enemyColor)) then [(x + colorDirection, y + n)] else []
+        
+        checkEnPassant n = if ((x + colorDirection, y + n) == (enPx,enPy)) then [(x + colorDirection, y + n)] else []
+
+        candidateSquares
+            | onStartingRank = checkForward 1 ++ checkForward 2 ++ checkDiags 1 ++ checkDiags (-1)
+            | onSeventhRank = undefined -- TODO : Handle Pawn Promotion
+            | otherwise = checkForward 1 ++ checkDiags 1 ++ checkDiags (-1)
+
+        candidateEnPassantSquares = checkEnPassant 1 ++ checkEnPassant (-1)
+
+        boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutPawn (Pawn pawnColor) square : recur) [] candidateSquares
+        boardWithEnPassant = foldr (\square recur -> boardWithPiece boardWithoutEnPassant (Pawn pawnColor) square : recur) [] candidateEnPassantSquares
 
 getCandidateKnight :: Board -> (Int,Int) -> [Board]
 getCandidateKnight (PieceArr pss) (x,y) = boardWithCandidates
