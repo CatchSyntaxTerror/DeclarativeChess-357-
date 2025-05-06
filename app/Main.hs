@@ -4,6 +4,7 @@ import Brillo
 -- import Brillo.Data.Color as BColor
 
 import ChessLogic.Types as Chess
+import ChessLogic.ChessConstants
 
 squareSize :: Float
 squareSize = 100.0
@@ -17,8 +18,7 @@ squareSize = 100.0
 -- tileColor :: Int -> Int -> BColor.Color
 -- tileColor x y = if even (x + y) then cream else greenPastel
 
--- tile :: Int -> Int -> Picture
--- tile x y = color (tileColor x y) (rectangleSolid squareSize squareSize)
+--Nf3 = head (tail (getCandidateKnight startingPosition (1,7)))
 
 -- pieceToPicture :: Piece -> Picture
 -- pieceToPicture p = scale 0.15 0.15 $ translate (-200) (-200) $
