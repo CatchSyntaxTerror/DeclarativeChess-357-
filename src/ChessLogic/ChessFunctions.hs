@@ -243,3 +243,13 @@ colorSquare (PieceArr pss) (x,y) = getColor (pss !! (x - startCoord) !! (y - sta
 
 pieceArrFromBoard :: Board -> [[Piece]]
 pieceArrFromBoard (PieceArr pss) = pss
+
+isCheck :: Board -> Color -> Bool
+
+isCheckMate :: Board -> Color -> Bool
+
+isStaleMate :: Board -> Color -> Bool
+
+isRepitition :: [String] -> Bool
+
+
