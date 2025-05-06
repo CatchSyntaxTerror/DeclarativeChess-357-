@@ -263,6 +263,9 @@ rowsFromFEN fen = getRow fen 0
         getRow fen 7 = [fen]
         getRow fen n = takeWhile (/= '/') fen : getRow (dropWhile (/= '/') fen) (n + 1)
 
+--FENFromBoard
+-- Takes board and returns a FEN string
+
 parseFENrow :: String -> [Piece]
 parseFENrow strs = foldr go [] strs
    where
