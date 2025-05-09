@@ -70,6 +70,8 @@ generateMaterialScore fen = sum (map charValue (takeWhile (/= ' ') fen))
 prune :: GameTree -> Int -> Int -> Bool -> Int
 prune = undefined
 
---Debug search function to see if a move exists in the game tree using a current FEN
-searchGT :: String -> GameTree
-searchGT = undefined
+--Debug search function to see if a move exists in the game tree using a current FEN.
+searchGT :: String -> GameTree -> Bool
+searchGT targetFEN (Node (fen, _) children)
+  | fen == targetFEN = True
+  | otherwise = any (searchGT targetFEN) children
