@@ -66,28 +66,48 @@ fenTOfens = undefined
 generateMaterialScore :: String -> Int
 generateMaterialScore fen = sum (map charValue (takeWhile (/= ' ') fen))
 
-prune :: GameTree -> Int -> Int -> Bool -> Int
-prune (Node (_, score) []) _ _ _ = score
-prune (Node _ children) alpha beta maximizingPlayer =
+--Prune out paths not better and the same (IN WORKS STILL)
+prune :: GameTree -> Int -> Int -> Bool -> GameTree
+prune (Node (fen, score) []) _ _ _ = Node (fen, score) []
+prune (Node (fen, score) children) alpha beta maximizingPlayer =
   if maximizingPlayer
-    then maxValue children alpha beta
-    else minValue children alpha beta
+    then let (bestChild, _) = pruneMax children alpha beta
+         in Node (fen, score) [bestChild]
+    else let (bestChild, _) = pruneMin children alpha beta
+         in Node (fen, score) [bestChild]
   where
-    maxValue [] a _ = a
-    maxValue (n:ns) a b =
-      let a' = max a (prune n a b False)
+    pruneMax [] a _ = (Node ("", -5000) [], a)
+    pruneMax (n:ns) a b =
+      let nPruned@(Node (fenN, s) childrenN) = prune n a b False
+          a' = max a s
       in if a' >= b
-           then a'
-           else maxValue ns a' b
-    minValue [] _ b = b
-    minValue (n:ns) a b =
-      let b' = min b (prune n a b True)
+           then (nPruned, a')
+           else
+             let (best, bestVal) = pruneMax ns a' b
+             in if s >= bestVal then (nPruned, s) else (best, bestVal)
+
+    pruneMin [] _ b = (Node ("", 5000) [], b)
+    pruneMin (n:ns) a b =
+      let nPruned@(Node (fenN, s) childrenN) = prune n a b True
+          b' = min b s
       in if a >= b'
-           then b'
-           else minValue ns a b'
+           then (nPruned, b')
+           else
+             let (best, bestVal) = pruneMin ns a b'
+             in if s <= bestVal then (nPruned, s) else (best, bestVal)
 
 --Debug search function to see if a move exists in the game tree using a current FEN
 searchGT :: String -> GameTree -> Bool
 searchGT targetFEN (Node (fen, _) children)
   | fen == targetFEN = True
   | otherwise = any (searchGT targetFEN) children
+
+--Test tree
+testFENTree :: GameTree
+testFENTree =
+  Node ("8/8/8/8/8/8/3k4/3K4 w - - 0 1", 0)
+    [ Node ("8/8/8/8/8/8/3k4/2K5 b - - 1 1", 0)  -- Kd1-c2
+        [ Node ("8/8/8/8/8/8/4k3/2K5 w - - 2 2", -500) [] ]  -- Kd2-e2
+    , Node ("8/8/8/8/8/8/3k4/4K3 b - - 1 1", 0)  -- Kd1-e1
+        [ Node ("8/8/8/8/8/8/4k3/4K3 w - - 2 2", -500) [] ]  -- Kd2-e2
+    ]
