@@ -66,9 +66,25 @@ fenTOfens = undefined
 generateMaterialScore :: String -> Int
 generateMaterialScore fen = sum (map charValue (takeWhile (/= ' ') fen))
 
--- Alpha-Beta tree pruning based on material scoring
 prune :: GameTree -> Int -> Int -> Bool -> Int
-prune = undefined
+prune (Node (_, score) []) _ _ _ = score
+prune (Node _ children) alpha beta maximizingPlayer =
+  if maximizingPlayer
+    then maxValue children alpha beta
+    else minValue children alpha beta
+  where
+    maxValue [] a _ = a
+    maxValue (n:ns) a b =
+      let a' = max a (prune n a b False)
+      in if a' >= b
+           then a'
+           else maxValue ns a' b
+    minValue [] _ b = b
+    minValue (n:ns) a b =
+      let b' = min b (prune n a b True)
+      in if a >= b'
+           then b'
+           else minValue ns a b'
 
 --Debug search function to see if a move exists in the game tree using a current FEN
 searchGT :: String -> GameTree -> Bool
