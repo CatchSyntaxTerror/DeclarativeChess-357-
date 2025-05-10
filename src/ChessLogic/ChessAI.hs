@@ -50,51 +50,45 @@ data GameTree = Node (String, Int) [GameTree]
 
 -- Create chess game tree
 buildTree :: Int -> String -> GameTree
-buildTree 0 fen = Node (fen, generateMaterialScore fen) []
-buildTree d fen = Node (fen, generateMaterialScore fen) (generateChildren (d-1) fen)
+buildTree h fen = buildTree' h True fen
+
+buildTree' :: Int -> Bool -> String -> GameTree
+buildTree' 0 maximizing fen = Node (fen, generateMaterialScore maximizing fen []) []
+buildTree' h maximizing fen =
+  let children = generateChildren (h - 1) (not maximizing) (fenTOfens fen)
+  in Node (fen, generateMaterialScore maximizing fen children) children
 
 -- Generate Child Nodes for a Parent Node aka generate all possible moves for a given FEN
-generateChildren :: Int -> String -> [GameTree]
-generateChildren 0 _ = []
-generateChildren d fen = map (buildTree (d-1)) (fenTOfens fen)
+generateChildren :: Int -> Bool -> [String] -> [GameTree]
+generateChildren h maximizing fens = map (buildTree' h maximizing) fens
 
 -- Take a FEN and returns an array of FENs aka an array of all possible moves
 fenTOfens :: String -> [String]
 fenTOfens = undefined
 
 -- Evaluate an FEN and generate it's material score
-generateMaterialScore :: String -> Int
-generateMaterialScore fen = sum (map charValue (takeWhile (/= ' ') fen))
+generateMaterialScore :: Bool -> String -> [GameTree] -> Int
+generateMaterialScore maximizingPlayer fen children = 
+  if children == []
+    then sum (map charValue (takeWhile (/= ' ') fen))
+    else minimax maximizingPlayer children
 
---Prune out paths not better and the same (IN WORKS STILL)
-prune :: GameTree -> Int -> Int -> Bool -> GameTree
-prune (Node (fen, score) []) _ _ _ = Node (fen, score) []
-prune (Node (fen, score) children) alpha beta maximizingPlayer =
-  if maximizingPlayer
-    then let (bestChild, _) = pruneMax children alpha beta
-         in Node (fen, score) [bestChild]
-    else let (bestChild, _) = pruneMin children alpha beta
-         in Node (fen, score) [bestChild]
-  where
-    pruneMax [] a _ = (Node ("", -5000) [], a)
-    pruneMax (n:ns) a b =
-      let nPruned@(Node (fenN, s) childrenN) = prune n a b False
-          a' = max a s
-      in if a' >= b
-           then (nPruned, a')
-           else
-             let (best, bestVal) = pruneMax ns a' b
-             in if s >= bestVal then (nPruned, s) else (best, bestVal)
+--Minimax of all child nodes based on the player turn
+minimax :: Bool -> [GameTree] -> Int
+minimax maximizingPlayer children =
+  let scores = map (\(Node (_, s) _) -> s) children
+  in if maximizingPlayer
+       then maximum scores
+       else minimum scores
 
-    pruneMin [] _ b = (Node ("", 5000) [], b)
-    pruneMin (n:ns) a b =
-      let nPruned@(Node (fenN, s) childrenN) = prune n a b True
-          b' = min b s
-      in if a >= b'
-           then (nPruned, b')
-           else
-             let (best, bestVal) = pruneMin ns a b'
-             in if s <= bestVal then (nPruned, s) else (best, bestVal)
+-- Recursively prune all paths that do not match the minimax-optimal score
+pruneTree :: Bool -> GameTree -> GameTree
+pruneTree maximizing (Node (fen, score) []) = Node (fen, score) []
+pruneTree maximizing (Node (fen, score) children) =
+  let prunedChildren = map (pruneTree (not maximizing)) children
+      bestScore = minimax maximizing prunedChildren
+      filtered = filter (\(Node (_, s) _) -> s == bestScore) prunedChildren
+  in Node (fen, score) filtered
 
 --Debug search function to see if a move exists in the game tree using a current FEN
 searchGT :: String -> GameTree -> Bool
@@ -102,7 +96,6 @@ searchGT targetFEN (Node (fen, _) children)
   | fen == targetFEN = True
   | otherwise = any (searchGT targetFEN) children
 
---Test tree
 testFENTree :: GameTree
 testFENTree =
   Node ("8/8/8/8/8/8/3k4/3K4 w - - 0 1", 0)
