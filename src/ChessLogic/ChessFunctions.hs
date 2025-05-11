@@ -16,6 +16,51 @@ boardWithPiece (PieceArr pss) piece (x,y) = PieceArr (foldr replaceRow [] (zip p
 getLegalMoves :: String -> [String]
 getLegalMoves = undefined
 
+-- Board -> Color -> EnPassant Square -> kingsideCastles possible -> queensideCastles possible -> List of legal moves
+getLegalMovesFromBoard :: Board -> Color -> (Int,Int) -> Bool -> Bool -> [Board]
+getLegalMovesFromBoard b c enP kCas qCas =
+    [brd | brd <- getCandidateMovesForColor b c enP kCas qCas (getCandidateMovesForColorWithoutCastles b otherColor (-1,-1)), not (inCheck brd c)]
+    where
+        otherColor = if c == White then Black else White
+
+kingOnBoard :: Board -> Color -> Bool
+kingOnBoard (PieceArr pss) c = foldr (kingInRow c) False pss
+    where
+        kingInRow color row recur = foldr (kingOnSquare color) False row || recur
+        kingOnSquare color' piece recur'
+            | piece == King color' = True
+            | otherwise = recur'
+
+inCheck :: Board -> Color -> Bool
+inCheck b c = not (all (`kingOnBoard` c) possibleBoards)
+     where
+        otherColor = if c == White then Black else White
+        -- Generating candidate boards
+        possibleBoards = getCandidateMovesForColorWithoutCastles b otherColor (-1,-1)
+
+getCandidateMovesForColorWithoutCastles :: Board -> Color -> (Int,Int) -> [Board]
+getCandidateMovesForColorWithoutCastles (PieceArr pss) color (enpx, enpy) = foldr parseRow [] (zip3 pss [startCoord..] (replicate 8 color))
+    where
+        parseRow (ps, row, color) recur = foldr parsePiece [] (zip3 ps (map (\i -> (row, i)) [startCoord..]) (replicate 8 color)) ++ recur
+        parsePiece (p, (row, col), c) recur' = case c of
+
+            White -> case p of
+                        Pawn White -> getCandidatePawn (PieceArr pss) (row, col) (enpx, enpy) ++ recur'
+                        Knight White -> getCandidateKnight (PieceArr pss) (row, col) ++ recur'
+                        Bishop White -> getCandidateBishop (PieceArr pss) (row, col) ++ recur'
+                        Rook White -> getCandidateRook (PieceArr pss) (row, col) ++ recur'
+                        Queen White -> getCandidateQueen (PieceArr pss) (row, col) ++ recur'
+                        King White -> getCandidateKingWithoutCastles (PieceArr pss) (row, col) ++ recur'
+                        otherwise -> recur'
+            Black -> case p of
+                        Pawn Black -> getCandidatePawn (PieceArr pss) (row, col) (enpx, enpy) ++ recur'
+                        Knight Black -> getCandidateKnight (PieceArr pss) (row, col) ++ recur'
+                        Bishop Black -> getCandidateBishop (PieceArr pss) (row, col) ++ recur'
+                        Rook Black -> getCandidateRook (PieceArr pss) (row, col) ++ recur'
+                        Queen Black -> getCandidateQueen (PieceArr pss) (row, col) ++ recur'
+                        King Black -> getCandidateKingWithoutCastles (PieceArr pss) (row, col) ++ recur'
+                        otherwise -> recur'
+
 -- pattern match for different pieces
 -- Board -> Piece Coordinate -> EnPCoordinate -> QCastling -> KCastling -> List of possible boards
 
@@ -26,7 +71,7 @@ getCandidateMovesForColor (PieceArr pss) color (enpx, enpy) kCas qCas enemyCandi
     where
         parseRow (ps, row, color) recur = foldr parsePiece [] (zip3 ps (map (\i -> (row, i)) [startCoord..]) (replicate 8 color)) ++ recur
         parsePiece (p, (row, col), c) recur' = case c of
-            
+
             White -> case p of
                         Pawn White -> getCandidatePawn (PieceArr pss) (row, col) (enpx, enpy) ++ recur'
                         Knight White -> getCandidateKnight (PieceArr pss) (row, col) ++ recur'
@@ -43,9 +88,12 @@ getCandidateMovesForColor (PieceArr pss) color (enpx, enpy) kCas qCas enemyCandi
                         Queen Black -> getCandidateQueen (PieceArr pss) (row, col) ++ recur'
                         King Black -> getCandidateKing (PieceArr pss) (row, col) kCas qCas enemyCandidates ++ recur'
                         otherwise -> recur'
+
+
 -- Board -> Piece Coordinate -> En Passant Coordinate -> List of Boards
+-- TODO: Make pawns not jump
 getCandidatePawn :: Board -> (Int,Int) -> (Int,Int) -> [Board]
-getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardWithCandidates ++ 
+getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardWithCandidates ++
                                                     boardWithKnightPromotion ++ boardWithBishopPromotion ++
                                                     boardWithRookPromotion ++ boardWithQueenPromotion
     where
@@ -62,15 +110,15 @@ getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardW
         enemyColor = if colorSquare (PieceArr pss) (x,y) == White then Black else White
 
         checkForward n = if (validSquare (x + (n * colorDirection),y) && colorSquare (PieceArr pss) (x + (n * colorDirection), y) == None) then [(x + (n * colorDirection),y)] else []
-        
+
         diagCandidateColor n = colorSquare (PieceArr pss) (x + colorDirection, y + n)
         checkDiags n = if ((validSquare (x + colorDirection,y + n)) && (diagCandidateColor n == enemyColor)) then [(x + colorDirection, y + n)] else []
-        
+
         checkEnPassant n = if ((x + colorDirection, y + n) == (enPx,enPy)) then [(x + colorDirection, y + n)] else []
 
         candidateSquares
             | onSeventhRank = [] -- All movement of pawns on 7th rank results in promotion
-            | onStartingRank = checkForward 1 ++ checkForward 2 ++ checkDiags 1 ++ checkDiags (-1)
+            | onStartingRank = checkForward 1 ++ if length (checkForward 1) > 0 then checkForward 2 else [] ++ checkDiags 1 ++ checkDiags (-1)
             | otherwise = checkForward 1 ++ checkDiags 1 ++ checkDiags (-1)
 
         candidatePromotionSquares = if onSeventhRank then checkForward 1 ++ checkDiags 1 ++ checkDiags (-1) else []
@@ -81,7 +129,7 @@ getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardW
         boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutPawn (Pawn pawnColor) square : recur) [] candidateSquares
         -- En passant movement
         boardWithEnPassant = foldr (\square recur -> boardWithPiece boardWithoutEnPassant (Pawn pawnColor) square : recur) [] candidateEnPassantSquares
-        
+
         -- Promotion Options
         boardWithKnightPromotion = foldr (\square recur -> boardWithPiece boardWithoutPawn (Knight pawnColor) square : recur) [] candidatePromotionSquares
         boardWithBishopPromotion = foldr (\square recur -> boardWithPiece boardWithoutPawn (Bishop pawnColor) square : recur) [] candidatePromotionSquares
@@ -91,7 +139,7 @@ getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardW
 getCandidateKnight :: Board -> (Int,Int) -> [Board]
 getCandidateKnight (PieceArr pss) (x,y) = boardWithCandidates
      where
-         boardWithoutKnight = boardWithPiece (PieceArr pss) Empty (x,y) 
+         boardWithoutKnight = boardWithPiece (PieceArr pss) Empty (x,y)
          boardWithCandidates = foldr (\square recur -> boardWithPiece boardWithoutKnight (Knight (colorSquare (PieceArr pss) (x,y))) square : recur) [] candidateSquares
          candidateSquares = filter (\p -> validSquare p && colorSquare (PieceArr pss) p /= colorSquare (PieceArr pss) (x,y)) squares
          squares = [(x + 2, y + 1),
@@ -182,25 +230,25 @@ getCandidateKing (PieceArr pss) (x,y) kCas qCas enemyCandidates = boardWithCandi
                      (x - 1, y)]
         colorKing = colorSquare (PieceArr pss) (x,y)
 
-        checkSquaresForEmpty2 (x1,y1)(x2,y2) = colorSquare (PieceArr pss) (x1,y1) == None && 
+        checkSquaresForEmpty2 (x1,y1)(x2,y2) = colorSquare (PieceArr pss) (x1,y1) == None &&
                                                colorSquare (PieceArr pss) (x2,y2) == None
 
-        checkSquaresForEmpty3 (x1,y1) (x2,y2) (x3,y3) = colorSquare (PieceArr pss) (x1,y1) == None && 
+        checkSquaresForEmpty3 (x1,y1) (x2,y2) (x3,y3) = colorSquare (PieceArr pss) (x1,y1) == None &&
                                                         colorSquare (PieceArr pss) (x2,y2) == None &&
                                                         colorSquare (PieceArr pss) (x3,y3) == None
 
-        checkSquaresForThreat (x1,y1) (x2,y2) (x3,y3) color = (foldr (\cand recur -> colorSquare cand (x1,x2) == color || 
-                                                                 colorSquare cand (x2,y2) == color || 
+        checkSquaresForThreat (x1,y1) (x2,y2) (x3,y3) color = (foldr (\cand recur -> colorSquare cand (x1,x2) == color ||
+                                                                 colorSquare cand (x2,y2) == color ||
                                                                  colorSquare cand (x3,y3) == color || recur) False enemyCandidates)
         castleKingside
-            | colorKing == White = kCas && (checkSquaresForEmpty2 (1,6)(1,7)) && not (checkSquaresForThreat (1,5)(1,6)(1,7) Black)
-            | colorKing == Black = kCas && (checkSquaresForEmpty2 (8,6)(8,7)) && not (checkSquaresForThreat (8,5)(8,6)(8,7) White)
-        
-        castleQueenside
-            | colorKing == White = qCas && (checkSquaresForEmpty3 (1,4)(1,3)(1,2)) && not (checkSquaresForThreat (1,3)(1,4)(1,5) Black)
-            | colorKing == Black = qCas && (checkSquaresForEmpty3 (8,4)(8,3)(8,2)) && not (checkSquaresForThreat (8,3)(8,4)(8,5) White)
+            | colorKing == White = kCas && (checkSquaresForEmpty2 (1,6) (1,7)) && not (checkSquaresForThreat (1,5) (1,6) (1,7) Black)
+            | colorKing == Black = kCas && (checkSquaresForEmpty2 (8,6) (8,7)) && not (checkSquaresForThreat (8,5) (8,6) (8,7) White)
 
-        boardWithoutKingsideCastle 
+        castleQueenside
+            | colorKing == White = qCas && (checkSquaresForEmpty3 (1,4) (1,3) (1,2)) && not (checkSquaresForThreat (1,3) (1,4) (1,5) Black)
+            | colorKing == Black = qCas && (checkSquaresForEmpty3 (8,4) (8,3) (8,2)) && not (checkSquaresForThreat (8,3) (8,4) (8,5) White)
+
+        boardWithoutKingsideCastle
             | colorKing == White = boardWithPiece boardWithoutKing Empty (1,8)
             | colorKing == Black = boardWithPiece boardWithoutKing Empty (8,8)
 
@@ -215,7 +263,7 @@ getCandidateKing (PieceArr pss) (x,y) kCas qCas enemyCandidates = boardWithCandi
         boardWithQueensideCastle
             | colorKing == White = boardWithPiece (boardWithPiece boardWithoutQueensideCastle (King White) (1,3)) (Rook White) (1,4)
             | colorKing == Black = boardWithPiece (boardWithPiece boardWithoutQueensideCastle (King Black) (8,3)) (Rook Black) (8,4)
-        
+
         candidateKingside = if castleKingside then [boardWithKingsideCastle] else []
         candidateQueenside = if castleQueenside then [boardWithQueensideCastle] else []
 

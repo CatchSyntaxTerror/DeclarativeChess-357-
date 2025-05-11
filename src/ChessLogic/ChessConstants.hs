@@ -7,6 +7,8 @@ import ChessLogic.FENParse
 startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 -- Some Test Positions
+testKingOnBoard = boardFromFEN "rnbqbbnr/ppp2ppp/3p4/1B2p3/4P3/5N2/PPPP1PPP/RNBQB2R"
+testCheck = boardFromFEN "rnbqkbnr/ppp2ppp/3p4/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 testKing = boardFromFEN "8/8/3k4/8/8/4K3/8/8"
 testRook = boardFromFEN "5k2/3p4/8/4r3/1P1R2P1/8/8/2K5"
 testPawn = boardFromFEN "1n6/P1ppp3/1pk2p2/6pP/4Kp1P/1p1P2P1/1PPPPP2/8"
