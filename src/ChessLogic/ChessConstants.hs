@@ -7,6 +7,8 @@ import ChessLogic.FENParse
 startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 -- Some Test Positions
+staleMate = boardFromFEN "kb6/qb5r/8/8/8/7N/6R1/r4B1K"
+smotheredMate = boardFromFEN "r1b1kbnr/pppp1Npp/8/8/4q3/5n2/PPPPBP1P/RNBQKR2"
 testKingOnBoard = boardFromFEN "rnbqbbnr/ppp2ppp/3p4/1B2p3/4P3/5N2/PPPP1PPP/RNBQB2R"
 testCheck = boardFromFEN "rnbqkbnr/ppp2ppp/3p4/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
 testKing = boardFromFEN "8/8/3k4/8/8/4K3/8/8"

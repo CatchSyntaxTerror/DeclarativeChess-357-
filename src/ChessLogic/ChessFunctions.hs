@@ -31,13 +31,6 @@ kingOnBoard (PieceArr pss) c = foldr (kingInRow c) False pss
             | piece == King color' = True
             | otherwise = recur'
 
-inCheck :: Board -> Color -> Bool
-inCheck b c = not (all (`kingOnBoard` c) possibleBoards)
-     where
-        otherColor = if c == White then Black else White
-        -- Generating candidate boards
-        possibleBoards = getCandidateMovesForColorWithoutCastles b otherColor (-1,-1)
-
 getCandidateMovesForColorWithoutCastles :: Board -> Color -> (Int,Int) -> [Board]
 getCandidateMovesForColorWithoutCastles (PieceArr pss) color (enpx, enpy) = foldr parseRow [] (zip3 pss [startCoord..] (replicate 8 color))
     where
@@ -292,14 +285,18 @@ colorSquare (PieceArr pss) (x,y) = getColor (pss !! (x - startCoord) !! (y - sta
 pieceArrFromBoard :: Board -> [[Piece]]
 pieceArrFromBoard (PieceArr pss) = pss
 
-isCheck :: Board -> Color -> Bool
-isCheck = undefined
+inCheck :: Board -> Color -> Bool
+inCheck b c = not (all (`kingOnBoard` c) possibleBoards)
+     where
+        otherColor = if c == White then Black else White
+        -- Generating candidate boards
+        possibleBoards = getCandidateMovesForColorWithoutCastles b otherColor (-1,-1)
 
-isCheckMate :: Board -> Color -> Bool
-isCheckMate = undefined
+isCheckMate :: Board -> Color -> (Int,Int) -> Bool
+isCheckMate brd clr enp = null (getLegalMovesFromBoard brd clr enp True True) && inCheck brd clr
 
-isStaleMate :: Board -> Color -> Bool
-isStaleMate = undefined
+isStaleMate :: Board -> Color -> (Int,Int) -> Bool
+isStaleMate brd clr enp = null (getLegalMovesFromBoard brd clr enp True True) && not (inCheck brd clr)
 
 isRepitition :: [String] -> Bool
 isRepitition = undefined
