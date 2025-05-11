@@ -1,7 +1,7 @@
 module Main where
 
 import Brillo
--- import Brillo.Data.Color as BColor
+import Brillo.Data.Color as BColor
 
 import ChessLogic.Types as Chess
 import ChessLogic.ChessConstants
@@ -9,40 +9,43 @@ import ChessLogic.ChessConstants
 squareSize :: Float
 squareSize = 100.0
 
--- cream :: BColor.Color
--- cream = BColor.makeColor 1.0 0.9 0.7 1.0
+cream :: BColor.Color
+cream = BColor.makeColor 1.0 0.9 0.7 1.0
 
--- greenPastel :: BColor.Color
--- greenPastel = BColor.makeColor 0.4 0.6 0.5 1.0
+greenPastel :: BColor.Color
+greenPastel = BColor.makeColor 0.4 0.6 0.5 1.0
 
--- tileColor :: Int -> Int -> BColor.Color
--- tileColor x y = if even (x + y) then cream else greenPastel
+tileColor :: Int -> Int -> BColor.Color
+tileColor x y = if even (x + y) then cream else greenPastel
 
---Nf3 = head (tail (getCandidateKnight startingPosition (1,7)))
+--nf3 = head (tail (getCandidateKnight startingPosition (1,7)))
 
--- pieceToPicture :: Piece -> Picture
--- pieceToPicture p = scale 0.15 0.15 $ translate (-200) (-200) $
---     text (showPiece p)
+tile :: Int -> Int -> Picture
+tile x y = color (tileColor x y) (rectangleSolid squareSize squareSize)
 
--- boardToPicture :: Float -> Board -> Picture
--- boardToPicture ws (PieceArr grid) = pictures
---     [ translate' ws cx cy (pictures [tile x y, pieceToPicture p])
---     | (y, row) <- zip [0..] grid
---     , (x, p)   <- zip [0..] row
---     , let cx = fromIntegral x * squareSize + squareSize / 2
---           cy = fromIntegral y * squareSize + squareSize / 2
---     ]
+pieceToPicture :: Piece -> Picture
+pieceToPicture p = scale 0.15 0.15 $ translate (-200) (-200) $
+    text (showPiece p)
 
--- --translate the coordinates to the center of the window
--- translate' :: Float -> Float -> Float -> Picture -> Picture
--- translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
+boardToPicture :: Float -> Board -> Picture
+boardToPicture ws (PieceArr grid) = pictures
+    [ translate' ws cx cy (pictures [tile x y, pieceToPicture p])
+    | (y, row) <- zip [0..] grid
+    , (x, p)   <- zip [0..] row
+    , let cx = fromIntegral x * squareSize + squareSize / 2
+          cy = fromIntegral y * squareSize + squareSize / 2
+    ]
+
+--translate the coordinates to the center of the window
+translate' :: Float -> Float -> Float -> Picture -> Picture
+translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
 
 
 main :: IO ()
 main = do
---   let board = startingPosition
---   let ws = 8 * squareSize
---   putStrLn "Loading..."
---   display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
+  let board = startingPosition
+  let ws = 8 * squareSize
+  putStrLn "Loading..."
+  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
 --   putStrLn "Finished"
-    display (InWindow "Declarative Chess1" (600, 600) (10, 10)) red (Color white (Circle 80))
+--     display (InWindow "Declarative Chess1" (600, 600) (10, 10)) red (Color white (Circle 80))
