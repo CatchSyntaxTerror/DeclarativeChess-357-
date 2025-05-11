@@ -70,7 +70,7 @@ drawBishop c = color c $ pictures
   , translate 0 (-30) $ rectangleSolid 20 7 -- Base
   ]
 
-drawQueen :: BColor.Color -> Picture
+drawQueen :: BColor.Color -> Picture -- IN WORKS
 drawQueen c = color c $ pictures
   [ translate 0 0 $ scale 0.6 0.6 $ circleSolid 10
   , translate 0 (-10) $ circleSolid 6
@@ -78,7 +78,7 @@ drawQueen c = color c $ pictures
   , translate 0 (-35) $ scale 2 0.5 $ rectangleSolid 10 10
   ]
 
-drawKing :: BColor.Color -> Picture
+drawKing :: BColor.Color -> Picture -- IN WORKS
 drawKing c = color c $ pictures
   [ translate 0 0 $ scale 0.6 0.6 $ circleSolid 10
   , translate 0 (-10) $ rectangleSolid 4 10
