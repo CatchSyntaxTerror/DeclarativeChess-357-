@@ -13,6 +13,17 @@ data Color = White | Black | None deriving (Eq,Show)
 
 data Board = PieceArr [[Piece]] 
 
+data Position = Position {
+    board :: Board,
+    move :: Color,
+    wKCastle :: Bool,
+    wQCastle :: Bool,
+    bKCastle :: Bool,
+    bQCastle :: Bool,
+    enPassant :: (Int,Int),
+    halfMove :: Int,
+    fullMove :: Int
+} deriving Show
 
 -- SHOW
 

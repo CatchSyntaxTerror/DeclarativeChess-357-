@@ -5,6 +5,66 @@ import ChessLogic.Types
 import Data.Char (digitToInt)
 import Data.Char (intToDigit)
 
+startCoordinate = 1 :: Int
+
+positionToFEN :: Position -> String
+positionToFEN (Position b c wK wQ bK bQ enP hm fm) = 
+    boardToFEN b ++ " " ++ [colorToChar c] ++ " " ++ castlesString wK wQ bK bQ ++ " " ++ coordToNotation enP ++ " " ++ show hm ++ " " ++  show fm
+        where
+            colorToChar c = if c == White then 'w' else 'b'
+            castlesString False False False False = "-"
+            castlesString wk wq bk bq = wkString wk ++ wqString wq ++ bkString bk ++ bqString bq
+            coordToNotation (9,9) = "-"
+            coordToNotation (row,col) = intToFile col : intToDigit row : []
+
+            wkString w = if w then "K" else []
+            wqString w = if w then "Q" else []
+            bkString b = if b then "k" else []
+            bqString b = if b then "q" else [] 
+
+positionFromFEN :: String -> Position
+positionFromFEN fen = Position board color wKingside wQueenside bKingside bQueenside enPassant halfMove fullMove
+    where
+        board = boardFromFEN (takeWhile (/= ' ') fen)
+        color = if head (getField 1 fen) == 'w' then White else Black
+        wKingside = elem 'K' (getField 2 fen)
+        wQueenside = elem 'Q' (getField 2 fen)
+        bKingside = elem 'k' (getField 2 fen)
+        bQueenside = elem 'q' (getField 2 fen)
+        enPassant = notationToCoordinate (getField 3 fen)
+        halfMove = read (getField 4 fen) :: Int
+        fullMove = read (getField 5 fen) :: Int
+
+getField :: Int -> String -> String
+getField 0 fen = if elem ' ' fen then takeWhile (/= ' ') fen else fen
+getField n fen = getField (n - 1) (tail (dropWhile (/= ' ') fen))
+
+notationToCoordinate :: String -> (Int,Int)
+notationToCoordinate [col,row] = (fileToInt col, digitToInt row)
+notationToCoordinate _ = (9,9)
+
+intToFile :: Int -> Char
+intToFile 1 = 'a'
+intToFile 2 = 'b'
+intToFile 3 = 'c'
+intToFile 4 = 'd'
+intToFile 5 = 'e'
+intToFile 6 = 'f'
+intToFile 7 = 'g'
+intToFile 8 = 'h'
+intToFile _ = 'x'
+
+fileToInt :: Char -> Int
+fileToInt 'a' = startCoordinate
+fileToInt 'b' = startCoordinate + 1
+fileToInt 'c' = startCoordinate + 2
+fileToInt 'd' = startCoordinate + 3
+fileToInt 'e' = startCoordinate + 4
+fileToInt 'f' = startCoordinate + 5
+fileToInt 'g' = startCoordinate + 6
+fileToInt 'h' = startCoordinate + 7
+fileToInt _ = 9
+
 boardToFEN :: Board -> String
 boardToFEN (PieceArr pss) = init (foldr parseBoard [] (reverse pss))
     where

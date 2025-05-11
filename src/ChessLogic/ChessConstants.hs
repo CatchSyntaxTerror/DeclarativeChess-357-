@@ -4,9 +4,13 @@ import ChessLogic.FENParse
 
 
 -- Starting position constructed as piece array for test
+startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" :: String
 startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 -- Some Test Positions
+knightFThree = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R"
+queensPawn = boardFromFEN "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR"
+queensPawnGame = boardFromFEN "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR"
 staleMate = boardFromFEN "kb6/qb5r/8/8/8/7N/6R1/r4B1K"
 smotheredMate = boardFromFEN "r1b1kbnr/pppp1Npp/8/8/4q3/5n2/PPPPBP1P/RNBQKR2"
 testKingOnBoard = boardFromFEN "rnbqbbnr/ppp2ppp/3p4/1B2p3/4P3/5N2/PPPP1PPP/RNBQB2R"
@@ -22,6 +26,9 @@ benko = boardFromFEN "1n3rk1/3pqppp/b4n2/2p5/8/4PN2/PP3PPP/R1BQK2R"
 italian = boardFromFEN "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R"
 pirc = boardFromFEN "rnbqk2r/ppp1ppbp/3p1np1/8/3PP3/2N1B3/PPPQ1PPP/R3KBNR"
 amin = boardFromFEN "3k4/5n2/3p4/3Qb3/1p6/8/8/4K3"
+
+-- Some test FENs
+ruyFEN = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"
 
 startCoord :: Int
 startCoord = 1

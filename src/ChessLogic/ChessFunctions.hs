@@ -3,6 +3,7 @@ module ChessLogic.ChessFunctions where
 import ChessLogic.Types
 import ChessLogic.FENParse
 import ChessLogic.ChessConstants
+import Data.List(zip4)
 
 -- Takes a board, a piece, a coordinate, and returns that board with the piece placed at that coordinate
 boardWithPiece :: Board -> Piece -> (Int,Int) -> Board
@@ -14,7 +15,67 @@ boardWithPiece (PieceArr pss) piece (x,y) = PieceArr (foldr replaceRow [] (zip p
 
 -- The main method for getting legal moves. Takes an FEN and returns a list of FENs
 getLegalMoves :: String -> [String]
-getLegalMoves = undefined
+getLegalMoves fen = map positionToFEN (getLegalFromPosition (positionFromFEN fen))
+
+getLegalFromPosition :: Position -> [Position]
+getLegalFromPosition (Position board color wk wq bk bq enP hm fm) = foldr newPosition [] outBoards
+    where
+        newPosition bn recur = Position bn newColor (newWK bn) (newWQ bn) (newBK bn) (newBQ bn) (newEnP bn) (newHM bn) (newFM bn) : recur
+
+        outBoards
+            | color == White = getLegalMovesFromBoard board White enP wk wq
+            | otherwise      = getLegalMovesFromBoard board Black enP bk bq
+        kingMoved b = getPieceMoved board b == (King color)
+        pawnMoved b = getPieceMoved board b == (Pawn color)
+        kRookMoved b = getCoordinateMoved board b == if color == White then (startCoord,endCoord) else (endCoord,endCoord)
+        qRookMoved b = getCoordinateMoved board b == if color == White then (startCoord,startCoord) else (endCoord,startCoord)
+
+        newEnP b = getEnPassantSquare board b
+        newColor = if color == White then Black else White
+        newWK b = wk && not (kingMoved b) && not (kRookMoved b)
+        newWQ b = wq && not (kingMoved b) && not (qRookMoved b)
+        newBK b = bk && not (kingMoved b) && not (kRookMoved b)
+        newBQ b = bq && not (kingMoved b) && not (qRookMoved b)
+        newHM b = if (pawnMoved b) || getPieceCaptured board b then 0 else hm + 1
+        newFM b = if color == Black then fm + 1 else fm
+
+
+getEnPassantSquare :: Board -> Board -> (Int,Int)
+getEnPassantSquare before after
+  | abs (fst (getCoordinateMoved before after) - fst (getNewCoordinate before after)) < 2 = (9,9)
+  | getPieceMoved before after /= (Pawn White) && getPieceMoved before after /= (Pawn Black) = (9,9)
+  | getPieceMoved before after == (Pawn White) = (fst (getCoordinateMoved before after) + 1,snd $ getCoordinateMoved before after)
+  | otherwise = (fst (getCoordinateMoved before after) - 1, snd $ getCoordinateMoved before after)
+
+getPieceCaptured :: Board -> Board -> Bool
+getPieceCaptured (PieceArr before) (PieceArr after) = foldr getCapturedRow False (zip before after)
+    where
+        getCapturedRow (rowBefore,rowAfter) recur = foldr getCapturedPiece False (zip rowBefore rowAfter) || recur
+        getCapturedPiece (before,after) recur' = (getColor after /= getColor before && getColor after /= None && getColor before /= None) || recur'
+
+getCoordinateMoved :: Board -> Board -> (Int,Int)
+getCoordinateMoved (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
+    where
+        getPieceRow (rowBefore,rowAfter,row) recur = if foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..]) == (9,9)
+                                                     then recur
+                                                     else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
+        getPiece (before,after,row,col) recur' = if after == Empty && before /= Empty then (row,col) else recur'
+
+getNewCoordinate :: Board -> Board -> (Int,Int)
+getNewCoordinate (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
+    where
+        getPieceRow (rowBefore,rowAfter,row) recur = if foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..]) == (9,9)
+                                                     then recur
+                                                     else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
+        getPiece (before,after,row,col) recur' = if after /= Empty && before /= after then (row,col) else recur'
+
+getPieceMoved :: Board -> Board -> Piece
+getPieceMoved (PieceArr before) (PieceArr after) = foldr getPieceRow Empty (zip before after)
+    where
+        getPieceRow (rowBefore,rowAfter) recur = if foldr getPiece Empty (zip rowBefore rowAfter) == Empty
+                                                 then recur
+                                                 else foldr getPiece Empty (zip rowBefore rowAfter)
+        getPiece (before,after) recur' = if after == Empty && before /= Empty then before else recur'
 
 -- Board -> Color -> EnPassant Square -> kingsideCastles possible -> queensideCastles possible -> List of legal moves
 getLegalMovesFromBoard :: Board -> Color -> (Int,Int) -> Bool -> Bool -> [Board]
@@ -84,7 +145,6 @@ getCandidateMovesForColor (PieceArr pss) color (enpx, enpy) kCas qCas enemyCandi
 
 
 -- Board -> Piece Coordinate -> En Passant Coordinate -> List of Boards
--- TODO: Make pawns not jump
 getCandidatePawn :: Board -> (Int,Int) -> (Int,Int) -> [Board]
 getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardWithCandidates ++
                                                     boardWithKnightPromotion ++ boardWithBishopPromotion ++
@@ -272,15 +332,15 @@ emptySquare (PieceArr pss) (x,y) = (pss !! (x - startCoord)) !! (y - startCoord)
 
 colorSquare :: Board -> (Int,Int) -> Color
 colorSquare (PieceArr pss) (x,y) = getColor (pss !! (x - startCoord) !! (y - startCoord))
-    where
-        getColor Empty = None
-        getColor (Pawn c) = c
-        getColor (Knight c) = c
-        getColor (Bishop c) = c
-        getColor (Queen c) = c
-        getColor (King c) = c
-        getColor (Rook c) = c
 
+getColor :: Piece -> Color
+getColor Empty = None
+getColor (Pawn c) = c
+getColor (Knight c) = c
+getColor (Bishop c) = c
+getColor (Queen c) = c
+getColor (King c) = c
+getColor (Rook c) = c
 
 pieceArrFromBoard :: Board -> [[Piece]]
 pieceArrFromBoard (PieceArr pss) = pss
