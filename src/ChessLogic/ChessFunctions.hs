@@ -32,10 +32,11 @@ getLegalFromPosition (Position board color wk wq bk bq enP hm fm) = foldr newPos
 
         newEnP b = getEnPassantSquare board b
         newColor = if color == White then Black else White
-        newWK b = wk && not (kingMoved b) && not (kRookMoved b)
-        newWQ b = wq && not (kingMoved b) && not (qRookMoved b)
-        newBK b = bk && not (kingMoved b) && not (kRookMoved b)
-        newBQ b = bq && not (kingMoved b) && not (qRookMoved b)
+        -- TODO: Make Color Dependent
+        newWK b = if color == White then wk && not (kingMoved b) && not (kRookMoved b) else wk
+        newWQ b = if color == White then wq && not (kingMoved b) && not (qRookMoved b) else wq
+        newBK b = if color == Black then bk && not (kingMoved b) && not (kRookMoved b) else bk
+        newBQ b = if color == Black then bq && not (kingMoved b) && not (qRookMoved b) else bk
         newHM b = if (pawnMoved b) || getPieceCaptured board b then 0 else hm + 1
         newFM b = if color == Black then fm + 1 else fm
 
@@ -352,13 +353,38 @@ inCheck b c = not (all (`kingOnBoard` c) possibleBoards)
         -- Generating candidate boards
         possibleBoards = getCandidateMovesForColorWithoutCastles b otherColor (-1,-1)
 
-isCheckMate :: Board -> Color -> (Int,Int) -> Bool
-isCheckMate brd clr enp = null (getLegalMovesFromBoard brd clr enp True True) && inCheck brd clr
+isCheckMateFromParameters :: Board -> Color -> (Int,Int) -> Bool
+isCheckMateFromParameters brd clr enp = null (getLegalMovesFromBoard brd clr enp True True) && inCheck brd clr
 
-isStaleMate :: Board -> Color -> (Int,Int) -> Bool
-isStaleMate brd clr enp = null (getLegalMovesFromBoard brd clr enp True True) && not (inCheck brd clr)
+isStaleMateFromParameters :: Board -> Color -> (Int,Int) -> Bool
+isStaleMateFromParameters brd clr enp = null (getLegalMovesFromBoard brd clr enp True True) && not (inCheck brd clr)
 
-isRepitition :: [String] -> Bool
-isRepitition = undefined
+repetition :: Position -> Position -> Bool
+repetition (Position b1 _ wk1 wq1 bk1 bq1 _ _ _) (Position b2 _ wk2 wq2 bk2 bq2 _ _ _)
+    = b1 == b2 && wk1 == wk2 && bk1 == bk2 && bq1 == bq2
+
+-- GAME OVER STUFF
+
+isFiftyMove :: String -> Bool
+isFiftyMove fen = isFifty (positionFromFEN fen)
+    where
+        isFifty (Position _ _ _ _ _ _ _ halfMove _) = halfMove >= 50
+
+isCheckMate :: String -> Bool
+isCheckMate fen = isCheck (positionFromFEN fen)
+    where
+        isCheck (Position board color _ _ _ _ enP _ _) = isCheckMateFromParameters board color enP
+
+isStaleMate :: String -> Bool
+isStaleMate fen = isStale (positionFromFEN fen)
+    where
+        isStale (Position board color _ _ _ _ enP _ _) = isStaleMateFromParameters board color enP
+
+
+isRepetition :: [String] -> Bool
+isRepetition = undefined
+-- isRepitition fens = any (\i -> i > 2) (foldr countMatches 0 (map positionFromFEN fens))
+--     where
+--         countMatches pos recur = sum [\pos2 -> if repetition pos pos2 then 1 :: Int else 0 :: Int | pos2 <- map positionFromFEN fens] : recur
 
 

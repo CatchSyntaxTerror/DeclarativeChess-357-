@@ -11,7 +11,7 @@ data Piece = Empty | Pawn Color   | Knight Color
 
 data Color = White | Black | None deriving (Eq,Show)
 
-data Board = PieceArr [[Piece]] 
+data Board = PieceArr [[Piece]] deriving Eq
 
 data Position = Position {
     board :: Board,
