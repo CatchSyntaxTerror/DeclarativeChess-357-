@@ -70,20 +70,29 @@ drawBishop c = color c $ pictures
   , translate 0 (-30) $ rectangleSolid 20 7 -- Base
   ]
 
-drawQueen :: BColor.Color -> Picture -- IN WORKS
+drawQueen :: BColor.Color -> Picture
 drawQueen c = color c $ pictures
-  [ translate 0 0 $ scale 0.6 0.6 $ circleSolid 10
-  , translate 0 (-10) $ circleSolid 6
-  , translate 0 (-20) $ rectangleSolid 12 18
-  , translate 0 (-35) $ scale 2 0.5 $ rectangleSolid 10 10
+  [ translate 0 (2) $ rectangleSolid 5 5
+  , translate 0 (-2) $ rectangleSolid 14 5
+  , translate 0 (-4) $ rectangleSolid 12 10
+  , translate 0 (-15) $ rectangleSolid 13 2
+  , translate 0 (-20) $ rectangleSolid 6 18
+  , translate 0 (-21) $ rectangleSolid 8 11
+  , translate 0 (-30) $ rectangleSolid 15 5
+  , translate 0 (-35) $ rectangleSolid 20 7
   ]
 
-drawKing :: BColor.Color -> Picture -- IN WORKS
+drawKing :: BColor.Color -> Picture
 drawKing c = color c $ pictures
-  [ translate 0 0 $ scale 0.6 0.6 $ circleSolid 10
-  , translate 0 (-10) $ rectangleSolid 4 10
-  , translate 0 (-20) $ rectangleSolid 12 18
-  , translate 0 (-20) $ scale 2 0.5 $ rectangleSolid 10 10
+  [ translate 0 (5) $ rectangleSolid 3 9
+  , translate 0 (6) $ rectangleSolid 8 3
+  , translate 0 (-3) $ rectangleSolid 12 10
+  , translate 0 (-5) $ rectangleSolid 10 10
+  , translate 0 (-15) $ rectangleSolid 13 2
+  , translate 0 (-20) $ rectangleSolid 6 18
+  , translate 0 (-21) $ rectangleSolid 8 11
+  , translate 0 (-30) $ rectangleSolid 15 5
+  , translate 0 (-35) $ rectangleSolid 20 7
   ]
 
 pieceToPicture :: Piece -> Picture
@@ -91,12 +100,6 @@ pieceToPicture p = translate (0) (20) $ scale 1.5 1.5 $ pieceSymbol p
 
 squareSize :: Float
 squareSize = 100.0
-
-cream :: BColor.Color
-cream = BColor.makeColor 1.0 0.9 0.7 1.0
-
-greenPastel :: BColor.Color
-greenPastel = BColor.makeColor 0.4 0.6 0.5 1.0
 
 tileColor :: Int -> Int -> BColor.Color
 tileColor x y = if even (x + y) then makeColor 0.50 0.50 0.50 1.0 else makeColor 0.3 0.3 0.3 1.0
