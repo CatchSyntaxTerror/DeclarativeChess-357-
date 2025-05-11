@@ -48,7 +48,7 @@ depth = 10
 data GameTree = Node (String, Int) [GameTree]
   deriving (Show, Eq)
 
--- Create chess game tree
+-- Create chess game tree with 1st node being the material score-maximizing node
 buildTree :: Int -> String -> GameTree
 buildTree h fen = buildTree' h True fen
 
@@ -90,12 +90,20 @@ pruneTree maximizing (Node (fen, score) children) =
       filtered = filter (\(Node (_, s) _) -> s == bestScore) prunedChildren
   in Node (fen, score) filtered
 
+-- Get best fen found in the tree after it is pruned and return it
+getBestFEN :: GameTree -> String
+getBestFEN (Node _ children) =
+  let scored = [(fen, s) | Node (fen, s) _ <- children]
+      bestScore = maximum (map snd scored)
+  in fst $ head $ filter (\(_, s) -> s == bestScore) scored
+
 --Debug search function to see if a move exists in the game tree using a current FEN
 searchGT :: String -> GameTree -> Bool
 searchGT targetFEN (Node (fen, _) children)
   | fen == targetFEN = True
   | otherwise = any (searchGT targetFEN) children
 
+--Debug function to test the search function
 testFENTree :: GameTree
 testFENTree =
   Node ("8/8/8/8/8/8/3k4/3K4 w - - 0 1", 0)
