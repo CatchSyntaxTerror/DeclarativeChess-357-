@@ -23,10 +23,12 @@ pieceSymbol _ = blank
 
 drawPawn :: BColor.Color -> Picture
 drawPawn c = color c $ pictures
-  [ translate 0 (-5) $ scale 0.3 0.3 $ circleSolid 20   -- Head
-  , translate 0 (-10) $ rectangleSolid 5 5             -- Mid1
-  , translate 0 (-16) $ scale 2 0.5 $ rectangleSolid 7 7 -- Mid2
-  , translate 0 (-20) $ scale 2 0.5 $ rectangleSolid 10 10 -- Base
+  [ translate 0 (-2) $ rectangleSolid 7 5 -- Head1
+  , translate 0 (-4) $ rectangleSolid 12 5 -- Head2
+  , translate 0 (-6) $ rectangleSolid 7 5 -- Head3
+  , translate 0 (-12) $ rectangleSolid 10 4 -- Mid2
+  , translate 0 (-16) $ rectangleSolid 20 4 -- Mid3
+  , translate 0 (-20) $ rectangleSolid 25 4 -- Base
   ]
 
 drawRook :: BColor.Color -> Picture
@@ -42,19 +44,25 @@ drawRook c = color c $ pictures
 
 drawKnight :: BColor.Color -> Picture
 drawKnight c = color c $ pictures
-  [ translate 0 (-4) $ rectangleSolid 10 10 -- 
-  , translate (-4) (-7) $ rectangleSolid 7 7 -- 
-  , translate (-7) (-11) $ rectangleSolid 5 5 -- 
-  , translate 0 (-15) $ rectangleSolid 5 5 -- Neck
-  , translate 0 (-20) $ rectangleSolid 10 7 -- Mid1
-  , translate 0 (-25) $ rectangleSolid 20 7 -- Mid2
+  [ translate 0 (-4) $ rectangleSolid 10 10 -- Head
+  , translate (-6) (-8) $ rectangleSolid 9 9 -- Snout1
+  , translate (-10) (-12) $ rectangleSolid 8 8 -- Snout2
+  , translate (-2) (1.3) $ rectangleSolid 12 4 -- Snout3
+  , translate (-7) (-1.7) $ rectangleSolid 9 4 -- Snout4
+  , translate (-13) (-5.7) $ rectangleSolid 4.5 4.5 -- Snout5
+  , translate (-15) (-10.5) $ rectangleSolid 5 5 -- Snout6
+  , translate (4) (-0.5) $ rectangleSolid 4 4 -- Neck1
+  , translate (4) (-5) $ rectangleSolid 8 8 -- Neck2
+  , translate 5 (-15) $ rectangleSolid 8 7 -- Mid1
+  , translate (3) (-20) $ rectangleSolid 10 7 -- Mid2
+  , translate 0 (-25) $ rectangleSolid 20 7 -- Mid3
   , translate 0 (-30) $ rectangleSolid 30 7 -- Base
   ]
 
 drawBishop :: BColor.Color -> Picture
 drawBishop c = color c $ pictures
-  [ translate 0 0 $ rectangleSolid 3 3 -- Top separator
-  , translate 0 (-5) $ rectangleSolid 7 5 -- Top separator
+  [ translate 0 0 $ rotate 45 $ rectangleSolid 5 5 -- Tip
+  , translate 0 (-5) $ rectangleSolid 7 3 -- Top
   , translate 0 (-9) $ rectangleSolid 13 2 -- Top separator
   , translate 0 (-12) $ rectangleSolid 5 5 -- Mid1
   , translate 0 (-20) $ rectangleSolid 6 6 -- Mid2
