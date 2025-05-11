@@ -3,6 +3,7 @@ module Main where
 import Brillo
 import Brillo.Data.Color as BColor
 
+
 import ChessLogic.Types as Chess
 import ChessLogic.ChessConstants
 
@@ -130,5 +131,3 @@ main = do
 
   putStrLn "Loading..."
   display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
---   putStrLn "Finished"
---     display (InWindow "Declarative Chess1" (600, 600) (10, 10)) red (Color white (Circle 80))

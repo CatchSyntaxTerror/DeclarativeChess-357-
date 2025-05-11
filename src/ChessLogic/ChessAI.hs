@@ -90,6 +90,13 @@ pruneTree maximizing (Node (fen, score) children) =
       filtered = filter (\(Node (_, s) _) -> s == bestScore) prunedChildren
   in Node (fen, score) filtered
 
+-- Get best fen found in the tree after it is pruned and return it
+getBestFEN :: GameTree -> String
+getBestFEN (Node _ children) =
+  let scored = [(fen, s) | Node (fen, s) _ <- children]
+      bestScore = maximum (map snd scored)
+  in fst $ head $ filter (\(_, s) -> s == bestScore) scored
+
 --Debug search function to see if a move exists in the game tree using a current FEN
 searchGT :: String -> GameTree -> Bool
 searchGT targetFEN (Node (fen, _) children)
