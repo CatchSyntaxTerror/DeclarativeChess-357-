@@ -245,11 +245,15 @@ pieceArrFromBoard :: Board -> [[Piece]]
 pieceArrFromBoard (PieceArr pss) = pss
 
 isCheck :: Board -> Color -> Bool
+isCheck = undefined
 
 isCheckMate :: Board -> Color -> Bool
+isCheckMate = undefined
 
 isStaleMate :: Board -> Color -> Bool
+isStaleMate = undefined
 
 isRepitition :: [String] -> Bool
+isRepitition = undefined
 
 
