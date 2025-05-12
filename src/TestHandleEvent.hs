@@ -4,6 +4,7 @@ import ChessLogic.ChessFunctions as Chess
 import ChessLogic.ChessAI as ComputerPlayer
 import ChessLogic.Types
 import ChessLogic.FENParse
+import ChessLogic.ChessConstants
 
 import Brillo.Interface.IO.Interact
 
@@ -16,7 +17,7 @@ data ClickState = ClickState {
 sqs = 100 :: Float
 bs = 800 :: Float
 
-ai = True :: Bool -- False = AI disabled & True = AI enabled
+ai = False :: Bool -- False = AI disabled & True = AI enabled
 
 ailevel = 3 :: Int -- specify ai level (1,2,3,4) defaulting to 3
 
@@ -38,6 +39,11 @@ handleClickCoordinate before@(ClickState fen sel tar) coord
 
 updateClickState :: Float -> ClickState -> ClickState
 updateClickState _ before@(ClickState fen sel tar)
+    | Chess.isCheckMate fen && getFENColor fen == Black = 
+        (ClickState whiteWins (9,9) (9,9))
+    | Chess.isCheckMate fen && getFENColor fen == White =
+        (ClickState blackWins (9,9) (9,9))
+    | Chess.isStaleMate fen = (ClickState draw (9,9) (9,9))
     | tar /= (9,9) =
         let newFen = Chess.newPositionFromCoordinates fen sel tar
         in ClickState newFen (if getFENColor newFen == Black then (9,9) else tar) (9,9)
