@@ -435,8 +435,6 @@ isStaleMate fen = isStale (positionFromFEN fen)
 
 isRepetition :: [String] -> Bool
 isRepetition = undefined
--- isRepitition fens = any (\i -> i > 2) (foldr countMatches 0 (map positionFromFEN fens))
---     where
---         countMatches pos recur = sum [\pos2 -> if repetition pos pos2 then 1 :: Int else 0 :: Int | pos2 <- map positionFromFEN fens] : recur
+-- Possibly define in the future
 
 

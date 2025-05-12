@@ -9,8 +9,7 @@ import ChessLogic.ChessConstants
 import ChessLogic.FENParse as FENParse
 import ChessLogic.ChessFunctions as ChessFunctions
 
---import HandleEvent
-import TestHandleEvent
+import HandleEvent
 
 pieceSymbol :: Piece -> Picture
 pieceSymbol (Pawn White)   = drawPawn white
@@ -182,5 +181,5 @@ main = do
     (\clk -> clickStateToPicture ws clk)
     --(boardToPicture ws board) -- This line Determines the starting state of the game
     --function for converting board to picture(?)
-    TestHandleEvent.handleClickEvent
-    TestHandleEvent.updateClickState
+    HandleEvent.handleClickEvent
+    HandleEvent.updateClickState

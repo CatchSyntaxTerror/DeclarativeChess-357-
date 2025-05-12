@@ -1,5 +1,4 @@
 module ChessLogic.Types where
-    -- |Todo: pawn promotion, en passant, castling, check, checkmate, stalemate, draw, Bishops, Querens and rooks
 
 
 
