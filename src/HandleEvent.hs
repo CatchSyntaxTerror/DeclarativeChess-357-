@@ -17,7 +17,7 @@ data ClickState = ClickState {
 sqs = 100 :: Float
 bs = 800 :: Float
 
-ai = True :: Bool -- False = AI disabled & True = AI enabled
+ai = False :: Bool -- False = AI disabled & True = AI enabled
 
 ailevel = 3 :: Int -- specify ai level (1,2,3,4) defaulting to 3
 
