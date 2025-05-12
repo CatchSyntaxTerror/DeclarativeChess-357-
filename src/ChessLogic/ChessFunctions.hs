@@ -17,6 +17,21 @@ boardWithPiece (PieceArr pss) piece (x,y) = PieceArr (foldr replaceRow [] (zip p
 getLegalMoves :: String -> [String]
 getLegalMoves fen = map positionToFEN (getLegalFromPosition (positionFromFEN fen))
 
+getLegalSquaresForCoordinate :: String -> (Int,Int) -> [(Int,Int)]
+getLegalSquaresForCoordinate fen coord = getLegalSquaresPosition (positionFromFEN fen) coord
+
+getLegalSquaresPosition :: Position -> (Int,Int) -> [(Int,Int)]
+getLegalSquaresPosition before@(Position board _ _ _ _ _ _ _ _) coord = map (\(Position after _ _ _ _ _ _ _ _) -> getNewCoordinate board after) pieceMoves
+    where
+        pieceMoves = filter (\(Position after _ _ _ _ _ _ _ _) -> getCoordinateMoved board after == coord) (getLegalFromPosition before)
+
+getLegalMovesForCoordinate :: String -> (Int,Int) -> [String]
+getLegalMovesForCoordinate fen coord = map positionToFEN (getLegalFromCoordinatePosition (positionFromFEN fen) coord)
+
+getLegalFromCoordinatePosition :: Position -> (Int,Int) -> [Position]
+getLegalFromCoordinatePosition before@(Position board _ _ _ _ _ _ _ _) coord = 
+    filter (\(Position after _ _ _ _ _ _ _ _) -> getCoordinateMoved board after == coord) (getLegalFromPosition before)
+
 getLegalFromPosition :: Position -> [Position]
 getLegalFromPosition (Position board color wk wq bk bq enP hm fm) = foldr newPosition [] outBoards
     where
