@@ -195,12 +195,12 @@ getCandidateMovesForColor (PieceArr pss) color (enpx, enpy) kCas qCas enemyCandi
                         King Black -> getCandidateKing (PieceArr pss) (row, col) kCas qCas enemyCandidates ++ recur'
                         otherwise -> recur'
 
-
+-- In the future: Add other promotions
 -- Board -> Piece Coordinate -> En Passant Coordinate -> List of Boards
 getCandidatePawn :: Board -> (Int,Int) -> (Int,Int) -> [Board]
-getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardWithCandidates ++
-                                                    boardWithKnightPromotion ++ boardWithBishopPromotion ++
-                                                    boardWithRookPromotion ++ boardWithQueenPromotion
+getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardWithCandidates ++ boardWithQueenPromotion
+                                                    -- ++ boardWithKnightPromotion ++ boardWithBishopPromotion ++ boardWithRookPromotion
+                                                    
     where
         boardWithoutEnPassant = boardWithPiece boardWithoutPawn Empty (enPx + ((-1) * colorDirection),enPy)
         boardWithoutPawn = boardWithPiece (PieceArr pss) Empty (x,y)
