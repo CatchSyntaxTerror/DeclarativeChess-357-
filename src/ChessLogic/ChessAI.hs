@@ -1,4 +1,6 @@
 module ChessLogic.ChessAI where
+
+import ChessLogic.ChessFunctions as ChessFunctions
   
 -- Chess piece constructor
 data Piece = 
@@ -64,7 +66,7 @@ generateChildren h maximizing fens = map (buildTree' h maximizing) fens
 
 -- Take a FEN and returns an array of FENs aka an array of all possible moves
 fenTOfens :: String -> [String]
-fenTOfens = undefined
+fenTOfens fen = getLegalMoves fen
 
 -- Evaluate an FEN and generate it's material score
 generateMaterialScore :: Bool -> String -> [GameTree] -> Int
