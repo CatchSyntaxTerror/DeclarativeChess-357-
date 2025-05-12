@@ -67,7 +67,8 @@ library
                         ChessLogic.Types, 
                         ChessLogic.ChessAI,
                         ChessLogic.ChessConstants,
-                        ChessLogic.FENParse
+                        ChessLogic.FENParse,
+                        TestHandleEvent
 
     -- Modules included in this library but not exported.
     -- other-modules:

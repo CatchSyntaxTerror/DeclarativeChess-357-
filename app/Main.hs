@@ -9,6 +9,9 @@ import ChessLogic.ChessConstants
 import ChessLogic.FENParse as FENParse
 import ChessLogic.ChessFunctions as ChessFunctions
 
+--import HandleEvent
+import TestHandleEvent
+
 pieceSymbol :: Piece -> Picture
 pieceSymbol (Pawn White)   = drawPawn white
 pieceSymbol (Pawn Black)   = drawPawn black
@@ -146,6 +149,11 @@ translate' :: Float -> Float -> Float -> Picture -> Picture
 translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
 
 
+initClickState = ClickState ruyFENwtm (9,9) (9,9)
+
+clickStateToPicture :: Float -> ClickState -> Picture
+clickStateToPicture ws (ClickState fen sel _) = boardSquareToPicture ws (FENParse.positionFromFEN fen) sel
+
 main :: IO ()
 main = do
   let board = startingPosition
@@ -156,11 +164,16 @@ main = do
   --putStrLn "Loading..."
   --display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
 
-  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardSquareToPicture ws checkPos (8,2))
+--   display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardSquareToPicture ws checkPos (8,2))
+  --play (InWindow "Declarative Chess" (round ws, round ws) (100,100)) white (boardToPicture ws board)
 
---   play
---     (InWindow "Declarative Chess" (round ws, round ws) (100,100) white (boardToPiecture ws Board))
---     fps
---     --function for converting board to picture(?)
---     newHandleEvent
---     tick
+  play
+    (InWindow "Declarative Chess" (round ws, round ws) (100,100))
+    white 
+    60 -- This is the FPS of the game
+    initClickState
+    (\clk -> clickStateToPicture ws clk)
+    --(boardToPicture ws board) -- This line Determines the starting state of the game
+    --function for converting board to picture(?)
+    TestHandleEvent.handleClickEvent
+    TestHandleEvent.updateClickState

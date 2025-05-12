@@ -17,6 +17,24 @@ boardWithPiece (PieceArr pss) piece (x,y) = PieceArr (foldr replaceRow [] (zip p
 getLegalMoves :: String -> [String]
 getLegalMoves fen = map positionToFEN (getLegalFromPosition (positionFromFEN fen))
 
+isLegalNewCoordinate :: String -> (Int,Int) -> (Int,Int) -> Bool
+isLegalNewCoordinate fen coord coord2 = elem coord2 (getLegalSquaresForCoordinate fen coord)
+
+-- Call This For MouseClicks
+newPositionFromCoordinates :: String -> (Int,Int) -> (Int,Int) -> String
+newPositionFromCoordinates fen before after = positionToFEN (newPositionFromPositionCoordinate (positionFromFEN fen) before after)
+
+-- Takes a position, a selected square, a target square and returns the updated position if legal, otherwise the original position
+newPositionFromPositionCoordinate :: Position -> (Int,Int) -> (Int,Int) -> Position
+newPositionFromPositionCoordinate pos@(Position board _ _ _ _ _ _ _ _) before after = 
+    if null outPosition then pos else head outPosition
+    where
+        outPosition = filter (\position2 -> getNewCoordinate board (boardFromPosition position2) == after) (getLegalFromCoordinatePosition pos before)
+        legalPositions = getLegalFromCoordinatePosition pos before
+
+boardFromPosition :: Position -> Board
+boardFromPosition (Position board _ _ _ _ _ _ _ _) = board
+
 getLegalSquaresForCoordinate :: String -> (Int,Int) -> [(Int,Int)]
 getLegalSquaresForCoordinate fen coord = getLegalSquaresPosition (positionFromFEN fen) coord
 
