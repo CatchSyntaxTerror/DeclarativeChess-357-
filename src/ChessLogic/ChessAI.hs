@@ -43,7 +43,7 @@ charValue c
 
 -- Chess game tree depth value
 depth :: Int
-depth = 3
+depth = 3 -- Optimal is depth 3, more difficult is deth 4, easy is depth 2
 
 -------------------------------------------------------------------
 
@@ -131,14 +131,3 @@ testFENTree =
     , Node ("8/8/8/8/8/8/3k4/4K3 b - - 1 1", 0)  -- Kd1-e1
         [ Node ("8/8/8/8/8/8/4k3/4K3 w - - 2 2", -500) [] ]  -- Kd2-e2
     ]
-
--- Test function to print out possible moves with their evaluation scores
-debugAIMoves :: String -> IO ()
-debugAIMoves fen = do
-  let tree@(Node (rootFen, rootScore) children) = buildTree 2 fen
-  putStrLn $ "Root FEN: " ++ rootFen
-  putStrLn $ "Root score: " ++ show rootScore
-  putStrLn "Possible moves (FEN -> Score):"
-  mapM_ printChild children
-  where
-    printChild (Node (fen, score) _) = putStrLn $ show score ++ " -> " ++ fen

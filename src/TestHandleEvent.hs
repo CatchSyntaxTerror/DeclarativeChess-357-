@@ -32,16 +32,14 @@ handleClickCoordinate before@(ClickState fen sel tar) coord
 
 updateClickState :: Float -> ClickState -> ClickState
 updateClickState _ before@(ClickState fen sel tar)
-    | tar == (9,9) = before
-    | otherwise =
+    | tar /= (9,9) =
         let newFen = Chess.newPositionFromCoordinates fen sel tar
-        in if isBlacksTurn newFen
-            then
-                let (from, to) = aiMove newFen  -- ← your AI's chosen move
-                    finalFen = Chess.newPositionFromCoordinates newFen from to
-                in ClickState finalFen (9,9) (9,9)
-            else
-                ClickState newFen tar (9,9)
+        in ClickState newFen (9,9) (9,9)
+    | isBlacksTurn fen && sel == (9,9) && tar == (9,9) =
+        let (from, to) = aiMove fen
+            finalFen   = Chess.newPositionFromCoordinates fen from to
+        in ClickState finalFen (9,9) (9,9)
+    | otherwise = before
 
 isBlacksTurn :: String -> Bool
 isBlacksTurn fen = case words fen of

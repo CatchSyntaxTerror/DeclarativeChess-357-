@@ -101,6 +101,13 @@ drawKing c = color c $ pictures
   , translate 0 (-35) $ rectangleSolid 20 7
   ]
 
+drawLoadingSprites :: BColor.Color -> Picture
+drawLoadingSprites c = color c $ pictures
+  [ translate 0 0 $ rectangleSolid 3 9
+  , translate (20) 0 $ rectangleSolid 8 3
+  , translate (10) 0 $ rectangleSolid 12 10
+  ]
+
 pieceToPicture :: Piece -> Picture
 pieceToPicture p = translate (0) (20) $ scale 1.5 1.5 $ pieceSymbol p
 
