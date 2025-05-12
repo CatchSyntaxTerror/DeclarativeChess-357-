@@ -50,7 +50,7 @@ Youssef Amin was responsible for the GUI including handling player clicks and ge
 Alex Maynes was responsible for the computer player.
 
 ## How To Run:
-navigate to DeclarativeChess-357 in the terminal and do 
+navigate to DeclarativeChess-357- in the terminal and do 
 
 ```cabal run```
 

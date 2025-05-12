@@ -2,6 +2,8 @@ module TestHandleEvent where
 
 import ChessLogic.ChessFunctions as Chess
 import ChessLogic.ChessAI as ComputerPlayer
+import ChessLogic.Types
+import ChessLogic.FENParse
 
 import Brillo.Interface.IO.Interact
 
@@ -38,7 +40,7 @@ updateClickState :: Float -> ClickState -> ClickState
 updateClickState _ before@(ClickState fen sel tar)
     | tar /= (9,9) =
         let newFen = Chess.newPositionFromCoordinates fen sel tar
-        in ClickState newFen (9,9) (9,9)
+        in ClickState newFen (if getFENColor newFen == Black then (9,9) else tar) (9,9)
     | ai && isBlacksTurn fen && sel == (9,9) && tar == (9,9) =
         let (from, to) = aiMove (depth ailevel) fen -- depth d (specify d)
             finalFen   = Chess.newPositionFromCoordinates fen from to

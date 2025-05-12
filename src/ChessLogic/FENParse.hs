@@ -35,6 +35,11 @@ positionFromFEN fen = Position board color wKingside wQueenside bKingside bQueen
         halfMove = read (getField 4 fen) :: Int
         fullMove = read (getField 5 fen) :: Int
 
+getFENColor :: String -> Color
+getFENColor fen = getPositionColor (positionFromFEN fen)
+    where
+        getPositionColor (Position _ color _ _ _ _ _ _ _) = color
+
 getField :: Int -> String -> String
 getField 0 fen = if elem ' ' fen then takeWhile (/= ' ') fen else fen
 getField n fen = getField (n - 1) (tail (dropWhile (/= ' ') fen))
