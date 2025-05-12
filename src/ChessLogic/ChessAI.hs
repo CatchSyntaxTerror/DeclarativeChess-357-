@@ -1,6 +1,7 @@
 module ChessLogic.ChessAI where
 
 import ChessLogic.ChessFunctions as ChessFunctions
+import ChessLogic.FENParse (positionFromFEN)
   
 -- Chess piece constructor
 data Piece = 
@@ -24,25 +25,25 @@ king   = King   500
 -- Convert FEN character to material value
 charValue :: Char -> Int
 charValue c
-  | c == 'P'  = pVal pawn
-  | c == 'p'  = -(pVal pawn)
-  | c == 'N'  = pVal knight
-  | c == 'n'  = -(pVal knight)
-  | c == 'B'  = pVal bishop
-  | c == 'b'  = -(pVal bishop)
-  | c == 'R'  = pVal rook
-  | c == 'r'  = -(pVal rook)
-  | c == 'Q'  = pVal queen
-  | c == 'q'  = -(pVal queen)
-  | c == 'K'  = pVal king
-  | c == 'k'  = -(pVal king)
+  | c == 'P'  = -(pVal pawn)
+  | c == 'p'  = pVal pawn
+  | c == 'N'  = -(pVal knight)
+  | c == 'n'  = pVal knight
+  | c == 'B'  = -(pVal bishop)
+  | c == 'b'  = pVal bishop
+  | c == 'R'  = -(pVal rook)
+  | c == 'r'  = pVal rook
+  | c == 'Q'  = -(pVal queen)
+  | c == 'q'  = pVal queen
+  | c == 'K'  = -(pVal king)
+  | c == 'k'  = pVal king
   | c `elem` ['1'..'8'] = 0 -- Empty squares
   | c == '/' = 0           -- Ignore rank separators
   | otherwise = 0          -- Safety fallback
 
 -- Chess game tree depth value
 depth :: Int
-depth = 10
+depth = 3
 
 -------------------------------------------------------------------
 
@@ -66,7 +67,7 @@ generateChildren h maximizing fens = map (buildTree' h maximizing) fens
 
 -- Take a FEN and returns an array of FENs aka an array of all possible moves
 fenTOfens :: String -> [String]
-fenTOfens fen = getLegalMoves fen
+fenTOfens fen = ChessFunctions.getLegalMoves fen
 
 -- Evaluate an FEN and generate it's material score
 generateMaterialScore :: Bool -> String -> [GameTree] -> Int
@@ -99,6 +100,22 @@ getBestFEN (Node _ children) =
       bestScore = maximum (map snd scored)
   in fst $ head $ filter (\(_, s) -> s == bestScore) scored
 
+
+-- Given a starting and resulting FEN, return the (from, to) move as coordinates
+getMoveCoords :: String -> String -> ((Int, Int), (Int, Int))
+getMoveCoords fen1 fen2 = (getCoordinateMoved b1 b2, getNewCoordinate b1 b2)
+  where
+    b1 = ChessFunctions.boardFromPosition (positionFromFEN fen1)
+    b2 = ChessFunctions.boardFromPosition (positionFromFEN fen2)
+
+-- Construct tree and return the best found move
+aiMove :: String -> ((Int, Int), (Int, Int))
+aiMove fen =
+  let tree = buildTree depth fen
+      pruned = pruneTree True tree
+      bestFen = getBestFEN pruned
+  in getMoveCoords fen bestFen
+
 --Debug search function to see if a move exists in the game tree using a current FEN
 searchGT :: String -> GameTree -> Bool
 searchGT targetFEN (Node (fen, _) children)
@@ -114,3 +131,14 @@ testFENTree =
     , Node ("8/8/8/8/8/8/3k4/4K3 b - - 1 1", 0)  -- Kd1-e1
         [ Node ("8/8/8/8/8/8/4k3/4K3 w - - 2 2", -500) [] ]  -- Kd2-e2
     ]
+
+-- Test function to print out possible moves with their evaluation scores
+debugAIMoves :: String -> IO ()
+debugAIMoves fen = do
+  let tree@(Node (rootFen, rootScore) children) = buildTree 2 fen
+  putStrLn $ "Root FEN: " ++ rootFen
+  putStrLn $ "Root score: " ++ show rootScore
+  putStrLn "Possible moves (FEN -> Score):"
+  mapM_ printChild children
+  where
+    printChild (Node (fen, score) _) = putStrLn $ show score ++ " -> " ++ fen

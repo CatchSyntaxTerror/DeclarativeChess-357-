@@ -1,6 +1,7 @@
 module TestHandleEvent where
 
 import ChessLogic.ChessFunctions as Chess
+import ChessLogic.ChessAI as ComputerPlayer
 
 import Brillo.Interface.IO.Interact
 
@@ -32,7 +33,20 @@ handleClickCoordinate before@(ClickState fen sel tar) coord
 updateClickState :: Float -> ClickState -> ClickState
 updateClickState _ before@(ClickState fen sel tar)
     | tar == (9,9) = before
-    | otherwise = ClickState (Chess.newPositionFromCoordinates fen sel tar) tar (9,9)
+    | otherwise =
+        let newFen = Chess.newPositionFromCoordinates fen sel tar
+        in if isBlacksTurn newFen
+            then
+                let (from, to) = aiMove newFen  -- ← your AI's chosen move
+                    finalFen = Chess.newPositionFromCoordinates newFen from to
+                in ClickState finalFen (9,9) (9,9)
+            else
+                ClickState newFen tar (9,9)
+
+isBlacksTurn :: String -> Bool
+isBlacksTurn fen = case words fen of
+    (_:color:_) -> color == "b"
+    _ -> False
 
 -- newEventHandle :: Event -> BoardState -> BoardState
 -- newEventHandle (EventKey (MouseButton LeftButton) Up _ (x,y)) board = undefined
