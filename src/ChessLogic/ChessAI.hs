@@ -25,7 +25,6 @@ rook   = Rook   5
 queen  = Queen  9
 king   = King   500
 
--- Convert FEN character to material value
 charValue :: Char -> Int
 charValue c
   | c == 'P'  = -(pVal pawn)
@@ -43,6 +42,18 @@ charValue c
   | c `elem` ['1'..'8'] = 0 -- Empty squares
   | c == '/' = 0           -- Ignore rank separators
   | otherwise = 0          -- Safety fallback
+
+-- Positional bonus for knights: center of board is more valuable
+pawnHeatMapScore :: Int -> Int -> Int
+pawnHeatMapScore row col =
+  let centerDistance = abs (3 - col) + abs (3 - row)
+  in max 0 (3 - centerDistance)  -- Bonus: 3 in center, tapering to 0
+
+-- Positional bonus for knights: center of board is more valuable
+knightHeatMapScore :: Int -> Int -> Int
+knightHeatMapScore row col =
+  let centerDistance = abs (3 - col) + abs (3 - row)
+  in max 0 (4 - centerDistance)  -- Bonus: 4 in center, tapering to 0
 
 inf :: Int
 inf = 10 ^ 9
@@ -91,11 +102,34 @@ minimax maximizingPlayer children =
        then maximum scores
        else minimum scores
 
--- Quick static evaluation of an FEN without calling minimax
 evalFEN :: String -> Int
-evalFEN fen = 
-  let score = sum (map charValue (takeWhile (/= ' ') fen))
+evalFEN fen =
+  let boardStr = takeWhile (/= ' ') fen
+      ranks = linesBy (== '/') boardStr
+      board = map expandFENLine ranks
+      score = sum [ pieceValue r c ch | (r, row) <- zip [0..] board, (c, ch) <- zip [0..] row ]
   in if whiteToMove fen then -score else score
+  where
+    pieceValue r c ch -- Apply heat maps
+      | ch == 'p' = pVal pawn + pawnHeatMapScore r c
+      | ch == 'P' = -(pVal pawn + pawnHeatMapScore (7 - r) c)
+      | ch == 'n' = pVal knight + knightHeatMapScore r c
+      | ch == 'N' = -(pVal knight + knightHeatMapScore (7 - r) c)
+      | otherwise = charValue ch
+
+    -- Read FEN pos for coords
+    expandFENLine [] = []
+    expandFENLine (x:xs)
+      | x `elem` ['1'..'8'] = replicate (read [x]) ' ' ++ expandFENLine xs
+      | otherwise = x : expandFENLine xs
+
+    linesBy _ [] = []
+    linesBy p s =
+      let (l, s') = break p s
+      in l : case s' of
+                []      -> []
+                (_:xs)  -> linesBy p xs
+
 
 whiteToMove :: String -> Bool
 whiteToMove fen = case words fen of
@@ -160,19 +194,3 @@ aiMove d fen =
       scored = map (\m -> (- alphaBeta (d - 1) False m (-inf) inf, m)) moves
       bestFen = snd $ maximumBy (compare `on` fst) scored
   in getMoveCoords fen bestFen
-
---Debug search function to see if a move exists in the game tree using a current FEN
-searchGT :: String -> GameTree -> Bool
-searchGT targetFEN (Node (fen, _) children)
-  | fen == targetFEN = True
-  | otherwise = any (searchGT targetFEN) children
-
---Debug function to test the search function
-testFENTree :: GameTree
-testFENTree =
-  Node ("8/8/8/8/8/8/3k4/3K4 w - - 0 1", 0)
-    [ Node ("8/8/8/8/8/8/3k4/2K5 b - - 1 1", 0)  -- Kd1-c2
-        [ Node ("8/8/8/8/8/8/4k3/2K5 w - - 2 2", -500) [] ]  -- Kd2-e2
-    , Node ("8/8/8/8/8/8/3k4/4K3 b - - 1 1", 0)  -- Kd1-e1
-        [ Node ("8/8/8/8/8/8/4k3/4K3 w - - 2 2", -500) [] ]  -- Kd2-e2
-    ]

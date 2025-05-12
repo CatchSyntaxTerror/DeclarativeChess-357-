@@ -20,9 +20,10 @@ bs = 800 :: Float
 tickTime = 30 :: Int
 
 aiB = True :: Bool -- False = AI for Black disabled & True =  AI for Black enabled
-aiW = False :: Bool -- False =  AI for White disabled & True =  AI for White enabled
+aiW = True :: Bool -- False =  AI for White disabled & True =  AI for White enabled
 
-ailevel = 3 :: Int -- specify ai level (1,2,3,4,5,6) defaulting to 3
+ailevelB = 2 :: Int -- specify ai level (1,2,3,4,5,6) defaulting to 3
+ailevelW = 3 :: Int -- specify ai level (1,2,3,4,5,6) defaulting to 3
 
 convertToNormal :: (Float,Float) -> (Int,Int)
 convertToNormal (x,y) = ((ceiling (y/100 + 4) :: Int), ceiling (x/100 + 4) :: Int)
@@ -52,11 +53,11 @@ updateClickState _ before@(ClickState fen sel tar t)
         let newFen = Chess.newPositionFromCoordinates fen sel tar
         in ClickState newFen (if getFENColor newFen == Black then (9,9) else tar) (9,9) (t + 1)
     | t `mod` tickTime == 0 && aiB && isBlackTurn fen && sel == (9,9) && tar == (9,9) =
-        let (from, to) = aiMove (depth ailevel) fen
+        let (from, to) = aiMove (depth ailevelB) fen
             finalFen   = Chess.newPositionFromCoordinates fen from to
         in ClickState finalFen (9,9) (9,9) (t + 1)
     | t `mod` tickTime == 0 && aiW && isWhiteTurn fen && sel == (9,9) && tar == (9,9) =
-        let (from, to) = aiMove (depth ailevel) fen
+        let (from, to) = aiMove (depth ailevelW) fen
             finalFen   = Chess.newPositionFromCoordinates fen from to
         in ClickState finalFen (9,9) (9,9) (t + 1)
     | otherwise = ClickState fen sel tar (t + 1)
