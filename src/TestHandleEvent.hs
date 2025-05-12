@@ -32,7 +32,7 @@ handleClickCoordinate before@(ClickState fen sel tar) coord
 updateClickState :: Float -> ClickState -> ClickState
 updateClickState _ before@(ClickState fen sel tar)
     | tar == (9,9) = before
-    | otherwise = ClickState (Chess.newPositionFromCoordinates fen sel tar) (9,9) (9,9)
+    | otherwise = ClickState (Chess.newPositionFromCoordinates fen sel tar) tar (9,9)
 
 -- newEventHandle :: Event -> BoardState -> BoardState
 -- newEventHandle (EventKey (MouseButton LeftButton) Up _ (x,y)) board = undefined

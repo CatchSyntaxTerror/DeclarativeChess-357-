@@ -149,7 +149,7 @@ translate' :: Float -> Float -> Float -> Picture -> Picture
 translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
 
 
-initClickState = ClickState ruyFENwtm (9,9) (9,9)
+initClickState = ClickState startFEN (9,9) (9,9)
 
 clickStateToPicture :: Float -> ClickState -> Picture
 clickStateToPicture ws (ClickState fen sel _) = boardSquareToPicture ws (FENParse.positionFromFEN fen) sel
