@@ -6,6 +6,8 @@ import Brillo.Data.Color as BColor
 
 import ChessLogic.Types as Chess
 import ChessLogic.ChessConstants
+import ChessLogic.FENParse as FENParse
+import ChessLogic.ChessFunctions as ChessFunctions
 
 pieceSymbol :: Piece -> Picture
 pieceSymbol (Pawn White)   = drawPawn white
@@ -105,19 +107,39 @@ squareSize = 100.0
 tileColor :: Int -> Int -> BColor.Color
 tileColor x y = if even (x + y) then makeColor 0.50 0.50 0.50 1.0 else makeColor 0.3 0.3 0.3 1.0
 
---nf3 = head (tail (getCandidateKnight startingPosition (1,7)))
+highlightColor :: Int -> Int -> BColor.Color
+highlightColor x y = if even (x + y) then makeColor 0 0.6 0.6 1.0 else makeColor 0 0.6 0.6 1.0
 
 tile :: Int -> Int -> Picture
 tile x y = color (tileColor x y) (rectangleSolid squareSize squareSize)
 
+tileLit :: Int -> Int -> Picture
+tileLit x y = color (highlightColor x y) (rectangleSolid squareSize squareSize)
+
+tileHighlight :: Int -> Int -> Picture
+tileHighlight x y = color (highlightColor x y) (rectangleSolid squareSize squareSize)
+
 boardToPicture :: Float -> Board -> Picture
 boardToPicture ws (PieceArr grid) = pictures
     [ translate' ws cx cy (pictures [tile x y, pieceToPicture p])
-    | (y, row) <- zip [0..] grid
+    | (y, row) <- zip [0..] flippedGrid
     , (x, p)   <- zip [0..] row
     , let cx = fromIntegral x * squareSize + squareSize / 2
           cy = fromIntegral y * squareSize + squareSize / 2
     ]
+    where flippedGrid = reverse grid
+
+boardSquareToPicture :: Float -> Position -> (Int,Int) -> Picture
+boardSquareToPicture ws pos@(Position (PieceArr grid) _ _ _ _ _ _ _ _) (row,col) = pictures
+    [ translate' ws cx cy (pictures [if elem (8 - y,x + 1) highlightedSquares then tileLit x y else tile x y, pieceToPicture p])
+    | (y, r) <- zip [0..] flippedGrid
+    , (x, p) <- zip [0..] r
+    , let cx = fromIntegral x * squareSize + squareSize / 2
+          cy = fromIntegral y * squareSize + squareSize / 2
+    ]
+    where 
+        flippedGrid = reverse grid
+        highlightedSquares = (row,col) : ChessFunctions.getLegalSquaresForCoordinate (FENParse.positionToFEN pos) (row,col)
 
 --translate the coordinates to the center of the window
 translate' :: Float -> Float -> Float -> Picture -> Picture
@@ -127,7 +149,18 @@ translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
 main :: IO ()
 main = do
   let board = startingPosition
+  let startPos = FENParse.positionFromFEN ruyFENwtm
+  let checkPos = FENParse.positionFromFEN checkFEN
   let ws = 8 * squareSize
 
-  putStrLn "Loading..."
-  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
+  --putStrLn "Loading..."
+  --display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardToPicture ws board)
+
+  display (InWindow "Declarative Chess" (round ws, round ws) (100, 100)) white (boardSquareToPicture ws checkPos (8,2))
+
+--   play
+--     (InWindow "Declarative Chess" (round ws, round ws) (100,100) white (boardToPiecture ws Board))
+--     fps
+--     --function for converting board to picture(?)
+--     newHandleEvent
+--     tick
