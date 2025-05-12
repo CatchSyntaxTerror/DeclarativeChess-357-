@@ -17,9 +17,9 @@ data ClickState = ClickState {
 sqs = 100 :: Float
 bs = 800 :: Float
 
-ai = False :: Bool -- False = AI disabled & True = AI enabled
+ai = True :: Bool -- False = AI disabled & True = AI enabled
 
-ailevel = 3 :: Int -- specify ai level (1,2,3,4) defaulting to 3
+ailevel = 5 :: Int -- specify ai level (1,2,3,4) defaulting to 3
 
 convertToNormal :: (Float,Float) -> (Int,Int)
 convertToNormal (x,y) = ((ceiling (y/100 + 4) :: Int), ceiling (x/100 + 4) :: Int)

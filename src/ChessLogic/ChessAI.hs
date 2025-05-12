@@ -1,7 +1,10 @@
+{-# LANGUAGE BangPatterns #-}
 module ChessLogic.ChessAI where
 
 import ChessLogic.ChessFunctions as ChessFunctions
 import ChessLogic.FENParse (positionFromFEN)
+import Data.Function (on)
+import Data.List (maximumBy)
   
 -- Chess piece constructor
 data Piece = 
@@ -41,11 +44,12 @@ charValue c
   | c == '/' = 0           -- Ignore rank separators
   | otherwise = 0          -- Safety fallback
 
+inf :: Int
+inf = 10 ^ 9
+
 -- Chess game tree depth value
 depth :: Int -> Int
-depth x = x -- Optimal is depth 3, more difficult is deth 4, easy is depth 2
-
--------------------------------------------------------------------
+depth x = x
 
 -- Game Tree Data Type (FEN, Material Score) [Child Nodes]
 data GameTree = Node (String, Int) [GameTree]
@@ -56,10 +60,13 @@ buildTree :: Int -> String -> GameTree
 buildTree h fen = buildTree' h True fen
 
 buildTree' :: Int -> Bool -> String -> GameTree
-buildTree' 0 maximizing fen = Node (fen, generateMaterialScore maximizing fen []) []
+buildTree' 0 maximizing fen =
+  Node (fen, generateMaterialScore maximizing fen []) []
 buildTree' h maximizing fen =
-  let children = generateChildren (h - 1) (not maximizing) (fenTOfens fen)
-  in Node (fen, generateMaterialScore maximizing fen children) children
+  let rawChildren    = generateChildren (h - 1) (not maximizing) (fenTOfens fen)
+      prunedChildren = pruneChildren maximizing rawChildren
+      nodeScore      = generateMaterialScore maximizing fen prunedChildren
+  in Node (fen, nodeScore) prunedChildren
 
 -- Generate Child Nodes for a Parent Node aka generate all possible moves for a given FEN
 generateChildren :: Int -> Bool -> [String] -> [GameTree]
@@ -74,7 +81,8 @@ generateMaterialScore :: Bool -> String -> [GameTree] -> Int
 generateMaterialScore maximizingPlayer fen children = 
   if children == []
     then sum (map charValue (takeWhile (/= ' ') fen))
-    else minimax maximizingPlayer children
+    else do
+      minimax maximizingPlayer children
 
 --Minimax of all child nodes based on the player turn
 minimax :: Bool -> [GameTree] -> Int
@@ -84,14 +92,39 @@ minimax maximizingPlayer children =
        then maximum scores
        else minimum scores
 
--- Recursively prune all paths that do not match the minimax-optimal score
-pruneTree :: Bool -> GameTree -> GameTree
-pruneTree maximizing (Node (fen, score) []) = Node (fen, score) []
-pruneTree maximizing (Node (fen, score) children) =
-  let prunedChildren = map (pruneTree (not maximizing)) children
-      bestScore = minimax maximizing prunedChildren
-      filtered = filter (\(Node (_, s) _) -> s == bestScore) prunedChildren
-  in Node (fen, score) filtered
+-- Quick static evaluation of an FEN without calling minimax
+evalFEN :: String -> Int
+evalFEN fen = sum (map charValue (takeWhile (/= ' ') fen))
+
+-- Inline Alpha Beta Pruning
+alphaBeta :: Int -> Bool -> String -> Int -> Int -> Int
+alphaBeta 0 maximizing fen _ _ =
+  let s = evalFEN fen
+  in if maximizing then s else (-s)
+alphaBeta d maximizing fen !alpha !beta =
+  search alpha (ChessFunctions.getLegalMoves fen)
+  where
+    search !a []     = a
+    search !a (m:ms) =
+      let score = - alphaBeta (d - 1) (not maximizing) m (-beta) (-a)
+          a'    = max a score
+      in if a' >= beta
+           then a'
+           else search a' ms
+
+-- Keep only those child nodes whose score equals the current best
+-- (max for the maximizing player, min for the minimizing player)
+pruneChildren :: Bool -> [GameTree] -> [GameTree]
+pruneChildren _ [] = []
+pruneChildren maximizing xs =
+  let scores = map (\(Node (_, s) _) -> s) xs
+      best   = if maximizing then maximum scores else minimum scores
+  in filter (\(Node (_, s) _) ->
+               if maximizing
+                 then s >= best   -- keep scores equal to the current max
+                 else s <= best   -- keep scores equal to the current min
+            ) xs
+
 
 -- Get best fen found in the tree after it is pruned and return it
 getBestFEN :: GameTree -> String
@@ -108,12 +141,20 @@ getMoveCoords fen1 fen2 = (getCoordinateMoved b1 b2, getNewCoordinate b1 b2)
     b1 = ChessFunctions.boardFromPosition (positionFromFEN fen1)
     b2 = ChessFunctions.boardFromPosition (positionFromFEN fen2)
 
--- Construct tree and return the best found move
+
+-- Construct tree and return the best found move (tree-based minimax)
+aiMoveTree :: Int -> String -> ((Int, Int), (Int, Int))
+aiMoveTree d fen =
+  let tree = buildTree d fen
+      bestFen = getBestFEN tree
+  in getMoveCoords fen bestFen
+
+-- | Best move using on‑the‑fly alpha‑beta pruning (no full tree build)
 aiMove :: Int -> String -> ((Int, Int), (Int, Int))
 aiMove d fen =
-  let tree = buildTree d fen
-      pruned = pruneTree True tree
-      bestFen = getBestFEN pruned
+  let moves  = ChessFunctions.getLegalMoves fen
+      scored = map (\m -> (- alphaBeta (d - 1) False m (-inf) inf, m)) moves
+      bestFen = snd $ maximumBy (compare `on` fst) scored
   in getMoveCoords fen bestFen
 
 --Debug search function to see if a move exists in the game tree using a current FEN

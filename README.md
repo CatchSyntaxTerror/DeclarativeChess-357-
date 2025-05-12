@@ -41,13 +41,13 @@ If your king isn't in check but you have no legal moves, then it's stalemate and
 Our program has the entirety of the chess rules, and it also detects legal moves given any square you select. So you can click on a piece and see where it can go, pretty convenient! You can play a complete chess game, and you can even play with a computer player.
 
 ### Chess Logic:
-Valerie Barker was responsible for the chess logic, including parsing chess positions from FEN strings, finding legal moves and piece movement of all the pieces, including special cases like en passant, castling and promotion. She also made game over detection and helped with the GUI. Youssef Amin also helped with the chess logic, making the legal move detection for bishop and queen.
+Valerie Barker was responsible for the chess logic, including parsing chess positions from FEN (Forsyth-Edwards Notation) strings, finding legal moves and piece movement of all the pieces, including special cases like en passant, castling and promotion. She also made game over detection and helped with the GUI. Youssef Amin also helped with the chess logic, making the legal move detection for bishop and queen.
 
 ### GUI:
 Youssef Amin was responsible for the GUI including handling player clicks and generating the next game state for any given moment, and drawing the Board. Alex Maynes made the sprites for the GUI and helped with a lot of helper functions for the GUI. Valerie Barker also helped with the GUI.
 
 ### Computer Player:
-Alex Maynes was responsible for the computer player.
+Alex Maynes was responsible for the computer player. The computer player follows a simplified version of alpha-beta pruning, implemented within a game tree framework based on FEN representations of the board state. The engine builds a tree of all possible moves from the current position and assigns a material score to each leaf node. These scores are then propagated upward using a minimax algorithm, which selects optimal moves by assuming the opponent will also play optimally. During this process, alpha-beta pruning is applied to skip over branches that cannot affect the final decision, improving efficiency. Once the evaluation is complete, the engine selects and executes the best available move. The greater depth the tree, the more skilled the computer player is.
 
 ## How To Run:
 navigate to DeclarativeChess-357- in the terminal and do 
