@@ -44,28 +44,44 @@ isKing :: Piece -> Bool
 isKing (King _) = True
 isKing _ = False
 
+isPawn :: Piece -> Bool
+isPawn (Pawn _) = True
+isPawn _ = False
+
+-- TODO: Make en passant highlight, make castles illegal when in check
 getLegalSquaresPosition :: Position -> (Int,Int) -> [(Int,Int)]
-getLegalSquaresPosition before@(Position board _ _ _ _ _ _ _ _) coord =
-    map (\(Position after _ _ _ _ _ _ _ _) -> if isKingBoard board coord
+getLegalSquaresPosition before@(Position board c _ _ _ _ _ _ _) coord =
+    map (\(Position after _ _ _ _ _ _ _ _) -> 
+        if isPawnBoard board coord
+        then getNewCoordinatePawn board after
+        else if isKingBoard board coord
         then getNewCoordinateKing board after
         else getNewCoordinate board after) pieceMoves
     where
         pieceMoves = filter (\(Position after _ _ _ _ _ _ _ _) -> 
-            if isKingBoard board coord
-                then getCoordinateMovedKing board after == coord
-                else getCoordinateMoved board after == coord) (getLegalFromPosition before)
+            if isPawnBoard board coord
+            then getCoordinateMovedPawn board after c == coord
+            else if isKingBoard board coord
+            then getCoordinateMovedKing board after == coord
+            else getCoordinateMoved board after == coord) (getLegalFromPosition before)
 
 getLegalMovesForCoordinate :: String -> (Int,Int) -> [String]
 getLegalMovesForCoordinate fen coord = map positionToFEN (getLegalFromCoordinatePosition (positionFromFEN fen) coord)
+
+isPawnBoard :: Board -> (Int,Int) -> Bool
+isPawnBoard _ (9,9) = False
+isPawnBoard (PieceArr pss) (row,col) = isPawn ((pss !! (row - startCoord)) !! (col - startCoord))
 
 isKingBoard :: Board -> (Int,Int) -> Bool
 isKingBoard _ (9,9) = False
 isKingBoard (PieceArr pss) (row,col) = isKing ((pss !! (row - startCoord)) !! (col - startCoord))
 
 getLegalFromCoordinatePosition :: Position -> (Int,Int) -> [Position]
-getLegalFromCoordinatePosition before@(Position board _ _ _ _ _ _ _ _) coord = 
+getLegalFromCoordinatePosition before@(Position board c _ _ _ _ _ _ _) coord = 
     filter (\(Position after _ _ _ _ _ _ _ _) -> 
-        if isKingBoard board coord 
+        if isPawnBoard board coord
+        then getCoordinateMovedPawn board after c == coord
+        else if isKingBoard board coord 
         then getCoordinateMovedKing board after == coord
         else getCoordinateMoved board after == coord) (getLegalFromPosition before)
 
@@ -114,6 +130,15 @@ getCoordinateMovedKing (PieceArr before) (PieceArr after) = foldr getPieceRow (9
                                                      else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
         getPiece (before,after,row,col) recur' = if after == Empty && (isKing before) then (row,col) else recur'
 
+getCoordinateMovedPawn :: Board -> Board -> Color -> (Int,Int)
+getCoordinateMovedPawn (PieceArr before) (PieceArr after) colr = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
+    where
+        getPieceRow (rowBefore,rowAfter,row) recur = if foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..]) == (9,9)
+                                                     then recur
+                                                     else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
+        getPiece (before,after,row,col) recur' = if after == Empty && getColor before == colr  then (row,col) else recur'
+
+
 getCoordinateMoved :: Board -> Board -> (Int,Int)
 getCoordinateMoved (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
     where
@@ -121,6 +146,15 @@ getCoordinateMoved (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) 
                                                      then recur
                                                      else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
         getPiece (before,after,row,col) recur' = if after == Empty && before /= Empty then (row,col) else recur'
+
+getNewCoordinatePawn :: Board -> Board -> (Int,Int)
+getNewCoordinatePawn (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
+    where
+        getPieceRow (rowBefore,rowAfter,row) recur = if foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..]) == (9,9)
+                                                     then recur
+                                                     else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
+        getPiece (before,after,row,col) recur' = if isPawn after && before /= after then (row,col) else recur'
+
 
 getNewCoordinateKing :: Board -> Board -> (Int,Int)
 getNewCoordinateKing (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
