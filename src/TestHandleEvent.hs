@@ -14,6 +14,10 @@ data ClickState = ClickState {
 sqs = 100 :: Float
 bs = 800 :: Float
 
+ai = True :: Bool -- False = AI disabled & True = AI enabled
+
+ailevel = 3 :: Int -- specify ai level (1,2,3,4) defaulting to 3
+
 convertToNormal :: (Float,Float) -> (Int,Int)
 convertToNormal (x,y) = ((ceiling (y/100 + 4) :: Int), ceiling (x/100 + 4) :: Int)
 
@@ -35,8 +39,8 @@ updateClickState _ before@(ClickState fen sel tar)
     | tar /= (9,9) =
         let newFen = Chess.newPositionFromCoordinates fen sel tar
         in ClickState newFen (9,9) (9,9)
-    | isBlacksTurn fen && sel == (9,9) && tar == (9,9) =
-        let (from, to) = aiMove fen
+    | ai && isBlacksTurn fen && sel == (9,9) && tar == (9,9) =
+        let (from, to) = aiMove (depth ailevel) fen -- depth d (specify d)
             finalFen   = Chess.newPositionFromCoordinates fen from to
         in ClickState finalFen (9,9) (9,9)
     | otherwise = before

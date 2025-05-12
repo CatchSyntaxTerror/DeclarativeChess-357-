@@ -42,8 +42,8 @@ charValue c
   | otherwise = 0          -- Safety fallback
 
 -- Chess game tree depth value
-depth :: Int
-depth = 3 -- Optimal is depth 3, more difficult is deth 4, easy is depth 2
+depth :: Int -> Int
+depth x = x -- Optimal is depth 3, more difficult is deth 4, easy is depth 2
 
 -------------------------------------------------------------------
 
@@ -109,9 +109,9 @@ getMoveCoords fen1 fen2 = (getCoordinateMoved b1 b2, getNewCoordinate b1 b2)
     b2 = ChessFunctions.boardFromPosition (positionFromFEN fen2)
 
 -- Construct tree and return the best found move
-aiMove :: String -> ((Int, Int), (Int, Int))
-aiMove fen =
-  let tree = buildTree depth fen
+aiMove :: Int -> String -> ((Int, Int), (Int, Int))
+aiMove d fen =
+  let tree = buildTree d fen
       pruned = pruneTree True tree
       bestFen = getBestFEN pruned
   in getMoveCoords fen bestFen
