@@ -29,7 +29,9 @@ newPositionFromPositionCoordinate :: Position -> (Int,Int) -> (Int,Int) -> Posit
 newPositionFromPositionCoordinate pos@(Position board _ _ _ _ _ _ _ _) before after = 
     if null outPosition then pos else head outPosition
     where
-        outPosition = filter (\position2 -> getNewCoordinate board (boardFromPosition position2) == after) (getLegalFromCoordinatePosition pos before)
+        outPosition = filter (\position2@(Position board2 _ _ _ _ _ _ _ _) -> 
+            (isKing (getPieceMoved board board2) && getNewCoordinateKing board (boardFromPosition position2) == after)
+            || (not (isKing(getPieceMoved board board2)) && getNewCoordinate board (boardFromPosition position2) == after)) (getLegalFromCoordinatePosition pos before)
         legalPositions = getLegalFromCoordinatePosition pos before
 
 boardFromPosition :: Position -> Board
@@ -38,8 +40,15 @@ boardFromPosition (Position board _ _ _ _ _ _ _ _) = board
 getLegalSquaresForCoordinate :: String -> (Int,Int) -> [(Int,Int)]
 getLegalSquaresForCoordinate fen coord = getLegalSquaresPosition (positionFromFEN fen) coord
 
+isKing :: Piece -> Bool
+isKing (King _) = True
+isKing _ = False
+
 getLegalSquaresPosition :: Position -> (Int,Int) -> [(Int,Int)]
-getLegalSquaresPosition before@(Position board _ _ _ _ _ _ _ _) coord = map (\(Position after _ _ _ _ _ _ _ _) -> getNewCoordinate board after) pieceMoves
+getLegalSquaresPosition before@(Position board _ _ _ _ _ _ _ _) coord =
+    map (\(Position after _ _ _ _ _ _ _ _) -> if isKing (getPieceMoved board after)
+        then getNewCoordinateKing board after
+        else getNewCoordinate board after) pieceMoves
     where
         pieceMoves = filter (\(Position after _ _ _ _ _ _ _ _) -> getCoordinateMoved board after == coord) (getLegalFromPosition before)
 
@@ -94,6 +103,15 @@ getCoordinateMoved (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) 
                                                      then recur
                                                      else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
         getPiece (before,after,row,col) recur' = if after == Empty && before /= Empty then (row,col) else recur'
+
+getNewCoordinateKing :: Board -> Board -> (Int,Int)
+getNewCoordinateKing (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
+    where
+        getPieceRow (rowBefore,rowAfter,row) recur = if foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..]) == (9,9)
+                                                     then recur
+                                                     else foldr getPiece (9,9) (zip4 rowBefore rowAfter (repeat row) [startCoord..])
+        getPiece (before,after,row,col) recur' = if isKing after && before /= after then (row,col) else recur'
+
 
 getNewCoordinate :: Board -> Board -> (Int,Int)
 getNewCoordinate (PieceArr before) (PieceArr after) = foldr getPieceRow (9,9) (zip3 before after [startCoord..])
@@ -205,7 +223,8 @@ getCandidatePawn (PieceArr pss) (x,y) (enPx,enPy) = boardWithEnPassant ++ boardW
 
         candidateSquares
             | onSeventhRank = [] -- All movement of pawns on 7th rank results in promotion
-            | onStartingRank = checkForward 1 ++ if length (checkForward 1) > 0 then checkForward 2 else [] ++ checkDiags 1 ++ checkDiags (-1)
+            | onStartingRank = checkDiags 1 ++ checkDiags (-1) ++ checkForward 1 ++ if length (checkForward 1) > 0 then checkForward 2
+             else []
             | otherwise = checkForward 1 ++ checkDiags 1 ++ checkDiags (-1)
 
         candidatePromotionSquares = if onSeventhRank then checkForward 1 ++ checkDiags 1 ++ checkDiags (-1) else []

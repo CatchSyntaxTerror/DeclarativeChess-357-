@@ -8,6 +8,8 @@ startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" :: String
 startingPosition = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 -- Some Test Positions
+oldBenoni = boardFromFEN "rnbqkbnr/pp1ppppp/8/2p5/3P4/8/PPP1PPPP/RNBQKBNR"
+testPawnCapture = boardFromFEN "rnbqkbnr/pp1ppppp/8/8/3P4/2p5/PPP1PPPP/RNBQKBNR"
 knightFThree = boardFromFEN "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R"
 queensPawn = boardFromFEN "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR"
 queensPawnGame = boardFromFEN "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR"
@@ -28,6 +30,9 @@ pirc = boardFromFEN "rnbqk2r/ppp1ppbp/3p1np1/8/3PP3/2N1B3/PPPQ1PPP/R3KBNR"
 amin = boardFromFEN "3k4/5n2/3p4/3Qb3/1p6/8/8/4K3"
 
 -- Some test FENs
+draw = "2p2P2/1pPpPpP1/2pPpP2/3pP3/8/3Kk3/8/8 w - - 0 1"
+blackWins = "8/2r2r2/2pkqp2/3pp3/r1r2r1r/ppp2ppp/ppp2ppp/pQp2pKp w - - 0 1"
+whiteWins = "8/2R2R2/2PKQP2/3PP3/R1R2R1R/PPP2PPP/PPP2PPP/PqP2PkP w - - 0 1"
 ruyFENwtm = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 3 3"
 ruyFEN = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"
 italianFEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"
