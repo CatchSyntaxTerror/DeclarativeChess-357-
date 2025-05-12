@@ -78,11 +78,10 @@ fenTOfens fen = ChessFunctions.getLegalMoves fen
 
 -- Evaluate an FEN and generate it's material score
 generateMaterialScore :: Bool -> String -> [GameTree] -> Int
-generateMaterialScore maximizingPlayer fen children = 
-  if children == []
-    then sum (map charValue (takeWhile (/= ' ') fen))
-    else do
-      minimax maximizingPlayer children
+generateMaterialScore maximizingPlayer fen children =
+  if null children
+    then evalFEN fen
+    else minimax maximizingPlayer children
 
 --Minimax of all child nodes based on the player turn
 minimax :: Bool -> [GameTree] -> Int
@@ -94,13 +93,18 @@ minimax maximizingPlayer children =
 
 -- Quick static evaluation of an FEN without calling minimax
 evalFEN :: String -> Int
-evalFEN fen = sum (map charValue (takeWhile (/= ' ') fen))
+evalFEN fen = 
+  let score = sum (map charValue (takeWhile (/= ' ') fen))
+  in if whiteToMove fen then -score else score
+
+whiteToMove :: String -> Bool
+whiteToMove fen = case words fen of
+    (_:color:_) -> color == "w"
+    _ -> False
 
 -- Inline Alpha Beta Pruning
 alphaBeta :: Int -> Bool -> String -> Int -> Int -> Int
-alphaBeta 0 maximizing fen _ _ =
-  let s = evalFEN fen
-  in if maximizing then s else (-s)
+alphaBeta 0 _ fen _ _ = evalFEN fen
 alphaBeta d maximizing fen !alpha !beta =
   search alpha (ChessFunctions.getLegalMoves fen)
   where

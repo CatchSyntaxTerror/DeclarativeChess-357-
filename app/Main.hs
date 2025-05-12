@@ -155,10 +155,10 @@ translate' :: Float -> Float -> Float -> Picture -> Picture
 translate' boardSize x y = translate (x - boardSize / 2) ((-y) + boardSize / 2)
 
 
-initClickState = ClickState startFEN (9,9) (9,9)
+initClickState = ClickState startFEN (9,9) (9,9) 0
 
 clickStateToPicture :: Float -> ClickState -> Picture
-clickStateToPicture ws (ClickState fen sel _) = boardSquareToPicture ws (FENParse.positionFromFEN fen) sel
+clickStateToPicture ws (ClickState fen sel _ _) = boardSquareToPicture ws (FENParse.positionFromFEN fen) sel
 
 main :: IO ()
 main = do
@@ -176,7 +176,7 @@ main = do
   play
     (InWindow "Declarative Chess" (round ws, round ws) (100,100))
     white 
-    60 -- This is the FPS of the game
+    60
     initClickState
     (\clk -> clickStateToPicture ws clk)
     --(boardToPicture ws board) -- This line Determines the starting state of the game
